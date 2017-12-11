@@ -13,5 +13,3 @@ net = Model(make_layers(cfg['4l']),5)
 
 tr = Trainer(net, nn.CrossEntropyLoss(), ds)
 tr.runEpoch()
-
-#Nouveau Commit
