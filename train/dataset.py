@@ -51,6 +51,8 @@ class ImageDataset(data.Dataset):
     # ~ ------
     def batchGenerator(self, n, class_dic, dataset, batchsize=200):
 
+        global Y
+
         def getClassImg(idx, dic, dataset):
             for key, value in dic.items():
                 imin = value[1]
@@ -87,7 +89,8 @@ class ImageDataset(data.Dataset):
         yield X, Y
         # ~ ------
 
-        # ~ ------
+    def trainGenerator(self, batchsize=200):
+
         return self.batchGenerator(self.n_train, self.class_dic, self.dataset, batchsize)
 
     # ~ ------
