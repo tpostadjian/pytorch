@@ -7,8 +7,6 @@ classes = ['bati', 'foret', 'route', 'culture', 'eau']
 
 ds = ImageDataset('/media/tpostadjian/Data/These/Test/data/brest_2016/Images/training/')
 
-it = ds.trainGenerator()
-
 net = Model(make_layers(cfg['4l']),5)
 
 tr = Trainer(net, nn.CrossEntropyLoss(), ds)

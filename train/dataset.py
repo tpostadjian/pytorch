@@ -85,7 +85,6 @@ class ImageDataset(data.Dataset):
 #~ ------
 
 #~ ------
-    def trainGenerator(self, batchsize=200):
         return self.batchGenerator(self.n_train, self.class_dic, self.dataset, batchsize)
 #~ ------
 
