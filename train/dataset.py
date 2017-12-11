@@ -5,14 +5,14 @@ import h5py
 import os
 import glob as glob
 
-def hdf5_reader(h5_file):
 
-    h5_ds = h5py.File(h5_file,'r')
+def hdf5_reader(h5_file):
+    h5_ds = h5py.File(h5_file, 'r')
     imgBuffer = []
     img_count = 1
     eof = False
     while eof == False:
-        img_str = 'img_'+str(img_count)
+        img_str = 'img_' + str(img_count)
         try:
             img = h5_ds[img_str]
             img = np.array(img)
@@ -26,9 +26,10 @@ def hdf5_reader(h5_file):
             pass
     return imgBuffer, img_count
 
+
 class ImageDataset(data.Dataset):
-#~ ------
-    def __init__(self, rootPath, trainRatio = 1., reader=hdf5_reader, transform=None):
+    # ~ ------
+    def __init__(self, rootPath, trainRatio=1., reader=hdf5_reader, transform=None):
         """
         Args:
             rootPath (string): Path to the h5 files containing image dataset
@@ -41,12 +42,13 @@ class ImageDataset(data.Dataset):
         self.reader = reader
         self.dataset, self.class_dic, self.n_samples = self.dataLoader(self.rootPath, self.reader)
         self.shuffle = torch.randperm(self.n_samples)
-        self.n_train = int(self.n_samples*trainRatio)
-        self.n_valid = 1-self.n_train
+        self.n_train = int(self.n_samples * trainRatio)
+        self.n_valid = 1 - self.n_train
         self.transform = transform
-#~ ------
 
-#~ ------
+    # ~ ------
+
+    # ~ ------
     def batchGenerator(self, n, class_dic, dataset, batchsize=200):
 
         def getClassImg(idx, dic, dataset):
@@ -55,20 +57,21 @@ class ImageDataset(data.Dataset):
                 imax = value[2]
                 if imin <= idx < imax:
                     cls = value[0]
-                    img = dataset[cls-1][idx-imin]
+                    img = dataset[cls - 1][idx - imin]
             return cls, img
+
         """
         Used by both trainGenerator et validGenerator
         """
         shuffle = torch.randperm(n)
         indBatch = shuffle.split(batchsize)
 
-        i=0
-        if i<=len(indBatch):
+        i = 0
+        if i <= len(indBatch):
             currentBatch = indBatch[i]
             imgBatch = []
             clsBatch = []
-            l = len(currentBatch) # current batch length
+            l = len(currentBatch)  # current batch length
             for j in range(l):
                 sample_ind = currentBatch[j]
                 cls, img = getClassImg(sample_ind, class_dic, dataset)
@@ -81,14 +84,15 @@ class ImageDataset(data.Dataset):
                 X[s] = imgBatch[s]
                 Y[s] = clsBatch[s]
             i += 1
-        yield X,Y
-#~ ------
+        yield X, Y
+        # ~ ------
 
-#~ ------
+        # ~ ------
         return self.batchGenerator(self.n_train, self.class_dic, self.dataset, batchsize)
-#~ ------
 
-#~ ------
+    # ~ ------
+
+    # ~ ------
     def dataLoader(self, path, reader):
         """
         returns :
@@ -98,14 +102,12 @@ class ImageDataset(data.Dataset):
         class_dic = {}
         dataset = []
         n_samples = 0
-        file_list = glob.glob(path+'/*.h5')
+        file_list = glob.glob(path + '/*.h5')
         count = 1
         for f in file_list:
             imgBuffer, n_img = reader(f)
-            class_dic[f] = [count, n_samples, n_samples+n_img]
+            class_dic[f] = [count, n_samples, n_samples + n_img]
             dataset.append(imgBuffer)
             n_samples += n_img
             count += 1
         return dataset, class_dic, n_samples
-
-
