@@ -1,6 +1,6 @@
 import numpy as np
-import skimage
-from skimage.segmentation import slic
+from skimage import io
+from skimage.segmentation import slic, felzenszwalb
 from skimage.segmentation import mark_boundaries
 from scipy.misc import imsave
 import matplotlib.pyplot as plt
@@ -47,7 +47,7 @@ def SLIC(img_name, img, n_seg=1000):
     return segments
 
 
-def PFF(img, cir=False, sigma=0.8, k=30, min_size=20):
+def PFF_arnaud(img, cir=False, sigma=0.8, k=30, min_size=20):
     name = os.path.basename(img)
     out_dir = os.path.dirname(img)
     name = name.split('.')[0]
@@ -75,3 +75,31 @@ def PFF(img, cir=False, sigma=0.8, k=30, min_size=20):
 # ~
 # ~ img = 'tile_16500_38500.tif'
 # ~ PFF(img,cir=False)
+
+def PFF_scikit(img, scale=3.0, sigma=0.95, min_size=5):
+    img = io.imread(img)
+    img = img.astype(np.float)
+    img_rgb = img[0:3, :, :]
+    # rescale intensity
+    mr = np.min(img_rgb[0, :, :])
+    mg = np.min(img_rgb[1, :, :])
+    mb = np.min(img_rgb[2, :, :])
+    Mr = np.max(img_rgb[0, :, :])
+    Mg = np.max(img_rgb[1, :, :])
+    Mb = np.max(img_rgb[2, :, :])
+    r_float = (img_rgb[0, :, :] - mr) / (Mr - mr)
+    g_float = (img_rgb[1, :, :] - mg) / (Mg - mg)
+    b_float = (img_rgb[2, :, :] - mb) / (Mb - mb)
+    r_rescaled = np.array([r_float, g_float, b_float])
+    img_rgb = img[0:3, :, :].transpose(1, 2, 0)
+    r_rescaled = r_rescaled.transpose(1, 2, 0)
+
+    print("********************** Segmentation running **********************")
+    start_time = time.time()
+    seg = felzenszwalb(r_rescaled, scale, sigma, min_size)
+    imsave(img_name + '_pff.png', segments)
+    print("********************* Segmentation: %s seconds *******************" % (time.time() - start_time))
+    return seg
+
+img = 'tile_16500_38500.tif'
+PFF_scikit(img)
