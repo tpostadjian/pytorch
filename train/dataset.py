@@ -16,7 +16,6 @@ def hdf5_reader(h5_file):
         try:
             img = h5_ds[img_str]
             img = np.array(img)
-            print("toto")
             img = torch.from_numpy(img)
             img = img.float()
             imgBuffer.append(img)
