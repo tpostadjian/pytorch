@@ -3,22 +3,25 @@ import subprocess
 import numpy as np
 import time
 from glob import glob as glob
-from skimage import io
-import pandas as pd
+import os
+import tif2h5
+import h5py
 
 ratio_pix2class = 0.4
 patch_size = 65
-offset = int(65 / 2)
+offset = int(patch_size / 2)
 list_img = glob('tile_16500_38500_seg.tif')
-listlabel = pd.read_table('pixelwiseListLabels.csv', delimiter=' ', decimal=',')
-listlabel = np.array(listlabel)
 count = 0
-x_pix = 0
-y_pix = 0
+
 # Loop over tiles covering the ROI
-for im in list_img:
-    print(im)
-    img = io.imread(im)
+for img in list_img:
+    tile = os.path.basename(img)
+    img_name = tile.split('.')[0]
+    pythonString = "/usr/bin/python2.7 tiff2hdf5_1file.py " + tifDirectory + "/" + img_name + ".tif " + h5Directory + "/" + img_name + ".h5"
+    subprocess.call(pythonString)
+    data = h5py.File(h5Directory + "/" + img_name + '.h5')
+    img = data['img_1']
+    img_np = np.array(img)
     # Reduce boundaries to avoid computing on "no data" areas
     seg = img[offset:img.shape[0] - offset, offset:img.shape[1] - offset]
     nl, nc = seg.shape
@@ -28,7 +31,6 @@ for im in list_img:
     # loop over segments (0.0166s/segment)
     start_time = time.time()
     # file to store class probabilities
-    img_name = im.split('.')[0]
     f = open(img_name + '_pred40%.txt', 'w')
     print("********************* Classification running *********************")
     for id_seg in n_s:

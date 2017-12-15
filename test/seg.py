@@ -48,7 +48,7 @@ def SLIC(img_name, img, n_seg=1000):
     return segments
 
 
-def PFF_arnaud(img, cir=False, sigma=0.8, k=30, min_size=10):
+def PFF(img, cir=False, sigma=0.8, k=30, min_size=10):
     name = os.path.basename(img)
     out_dir = os.path.dirname(img)
     name = name.split('.')[0]
