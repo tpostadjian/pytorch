@@ -106,5 +106,5 @@ def PFF_scikit(img, scale=60, sigma=0.8, min_size=20):
     return seg
 
 
-img = '/media/tpostadjian/Data/These/Test/slic2label/tile_16500_38500_byte.tif'
-PFF_scikit(img)
+# img = '/media/tpostadjian/Data/These/Test/slic2label/tile_16500_38500_byte.tif'
+# PFF_scikit(img)

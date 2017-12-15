@@ -4,14 +4,13 @@ import numpy as np
 import time
 from glob import glob as glob
 import os
-import tif2h5
 import h5py
 
 ratio_pix2class = 0.4
 patch_size = 65
 offset = int(patch_size / 2)
-list_img = glob("../test_set/tile_16500_38500_seg.tif")
-tifDirectory = os.path.abspath(list_img[0])
+list_img = glob("../test_set/tile_16500_38500.tif")
+tifDirectory = list_img[0]
 h5Directory = os.path.abspath("../test_set")
 count = 0
 
@@ -19,22 +18,20 @@ count = 0
 for img in list_img:
     tile = os.path.basename(img)
     img_name = tile.split('.')[0]
-    pythonString = "/usr/bin/python2.7 tiff2hdf5_1file.py " \
-                   + tifDirectory + img \
+    pythonString = "/usr/bin/python2.7 tif2h5.py " \
+                   + tifDirectory + " " \
                    + h5Directory + "/" + img_name + ".h5"
-    print(pythonString)
-    subprocess.call(pythonString)
+    subprocess.call(pythonString, shell=True)
     data = h5py.File(h5Directory + "/" + img_name + ".h5")
     img = data["img_1"]
+    print(type(img))
     img_np = np.array(img)
-
     # Reduce boundaries to avoid computing on "no data" areas
-    seg = img[offset:img.shape[0] - offset, offset:img.shape[1] - offset]
-    nl, nc = seg.shape
-    print(nl, nc)
+    img_noEdge = img_np[0:3, offset:img.shape[1] - offset, offset:img.shape[2] - offset]
+    nb, nl, nc = img_noEdge.shape
 
     # how many segments ?
-    n_s = np.unique(seg)
+    n_s = np.unique(img_noEdge)
 
     # loop over segments (0.015s/segment)
     start_time = time.time()
@@ -45,7 +42,7 @@ for img in list_img:
     for id_seg in n_s:
 
         # retrieve pixels indices for given segment (np.where takes time!)
-        seg_ind = np.where(seg == id_seg)
+        seg_ind = np.where(img_noEdge == id_seg)
         n_pix_seg = seg_ind[0].shape[0]
 
         # randomly draw pixels within the current segment
