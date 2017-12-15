@@ -12,6 +12,7 @@ offset = int(65 / 2)
 list_img = glob('tile_16500_38500_seg.tif')
 listlabel = pd.read_table('pixelwiseListLabels.csv', delimiter=' ', decimal=',')
 print("coucou")
+print("double coucou")
 listlabel = np.array(listlabel)
 count = 0
 x_pix = 0
