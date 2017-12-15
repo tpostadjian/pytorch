@@ -1,5 +1,6 @@
 import numpy as np
 from skimage import io
+from PIL import Image
 from skimage.segmentation import slic, felzenszwalb
 from skimage.segmentation import mark_boundaries
 from scipy.misc import imsave
@@ -7,7 +8,7 @@ import matplotlib.pyplot as plt
 import os
 import time
 import subprocess
-
+import matplotlib.pyplot as plt
 
 def SLIC(img_name, img, n_seg=1000):
     # ~ ds_arr_int = skimage.img_as_int(img)[0:3,:,:]
@@ -47,7 +48,7 @@ def SLIC(img_name, img, n_seg=1000):
     return segments
 
 
-def PFF_arnaud(img, cir=False, sigma=0.8, k=30, min_size=20):
+def PFF_arnaud(img, cir=False, sigma=0.8, k=30, min_size=10):
     name = os.path.basename(img)
     out_dir = os.path.dirname(img)
     name = name.split('.')[0]
@@ -76,9 +77,10 @@ def PFF_arnaud(img, cir=False, sigma=0.8, k=30, min_size=20):
 # ~ img = 'tile_16500_38500.tif'
 # ~ PFF(img,cir=False)
 
-def PFF_scikit(img, scale=3.0, sigma=0.95, min_size=5):
+def PFF_scikit(img, scale=60, sigma=0.8, min_size=20):
     img = io.imread(img)
-    img = img.astype(np.float)
+    img = img.astype(np.uint8)
+    img = np.reshape(img, (4,2100,2100))
     img_rgb = img[0:3, :, :]
     # rescale intensity
     mr = np.min(img_rgb[0, :, :])
@@ -97,9 +99,12 @@ def PFF_scikit(img, scale=3.0, sigma=0.95, min_size=5):
     print("********************** Segmentation running **********************")
     start_time = time.time()
     seg = felzenszwalb(r_rescaled, scale, sigma, min_size)
-    imsave(img_name + '_pff.png', segments)
+    n_seg = np.unique(seg)
+    print(n_seg.shape)
+    imsave('/media/tpostadjian/Data/These/Test/slic2label/tile_16500_38500_pff.png', seg)
     print("********************* Segmentation: %s seconds *******************" % (time.time() - start_time))
     return seg
 
-img = 'tile_16500_38500.tif'
+
+img = '/media/tpostadjian/Data/These/Test/slic2label/tile_16500_38500_byte.tif'
 PFF_scikit(img)
