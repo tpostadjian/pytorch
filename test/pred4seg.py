@@ -21,7 +21,6 @@ net = net.cuda()
 
 list_img = glob("../test_set/tile_16500_38500.tif")
 directory = os.path.dirname(list_img[0])
-print(directory)
 count = 0
 
 # Loop over tiles covering the ROI
