@@ -11,7 +11,7 @@ from skimage import io
 import progressbar
 
 
-ratio_pix2class = 0.4
+ratio_pix2class = 0.2
 patch_size = 65
 offset = int(patch_size / 2)
 model = '/media/tpostadjian/Data/These/Test/Results/GPU/test_101/model_float.net'
