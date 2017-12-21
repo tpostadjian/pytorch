@@ -1,4 +1,3 @@
-import scipy
 import scipy.ndimage
 import numpy as np
 from scipy.misc import imsave
