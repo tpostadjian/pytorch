@@ -10,6 +10,7 @@ import time
 import subprocess
 import matplotlib.pyplot as plt
 
+
 def SLIC(img_name, img, n_seg=1000):
     # ~ ds_arr_int = skimage.img_as_int(img)[0:3,:,:]
     # ~ ds_arr_f = skimage.img_as_float(img)[0:3,:,:]
@@ -48,7 +49,7 @@ def SLIC(img_name, img, n_seg=1000):
     return segments
 
 
-def PFF(img, cir=False, sigma=0.8, k=30, min_size=10):
+def PFF(img, cir=False, sigma=0.8, k=30, min_size=20):
     name = os.path.basename(img)
     out_dir = os.path.dirname(img)
     name = name.split('.')[0]
@@ -58,7 +59,7 @@ def PFF(img, cir=False, sigma=0.8, k=30, min_size=10):
     ByteString = 'Ech_noifst ReetalQuantile ' + img + ' 0.1 0.1 ' + Bytepath
     subprocess.call(ByteString, shell=True)
 
-    if cir == True:
+    if cir:
         print('CIR mode')
         CIRName = name + '_byteCIR.tif'
         CIRpath = os.path.join(out_dir, CIRName)
@@ -73,14 +74,15 @@ def PFF(img, cir=False, sigma=0.8, k=30, min_size=10):
     PFFpath = os.path.join(out_dir, PFFname)
     PFFstring = 'SegmentationPFFst ' + str(sigma) + ' ' + str(k) + ' ' + str(min_size) + ' ' + in_img + ' ' + PFFpath
     subprocess.call(PFFstring, shell=True)
-# ~
+
+
 # ~ img = 'tile_16500_38500.tif'
 # ~ PFF(img,cir=False)
 
 def PFF_scikit(img, scale=60, sigma=0.8, min_size=20):
     img = io.imread(img)
     img = img.astype(np.uint8)
-    img = np.reshape(img, (4,2100,2100))
+    img = np.reshape(img, (4, 2100, 2100))
     img_rgb = img[0:3, :, :]
     # rescale intensity
     mr = np.min(img_rgb[0, :, :])
@@ -104,7 +106,3 @@ def PFF_scikit(img, scale=60, sigma=0.8, min_size=20):
     imsave('/media/tpostadjian/Data/These/Test/slic2label/tile_16500_38500_pff.png', seg)
     print("********************* Segmentation: %s seconds *******************" % (time.time() - start_time))
     return seg
-
-
-# img = '/media/tpostadjian/Data/These/Test/slic2label/tile_16500_38500_byte.tif'
-# PFF_scikit(img)
