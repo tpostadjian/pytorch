@@ -35,7 +35,7 @@ for img in list_img:
     pythonString = "/usr/bin/python2.7 tif2h5.py " \
                     + img + " " \
                     + directory + "/" + img_name + ".h5"
-     subprocess.call(pythonString, shell=True)
+    subprocess.call(pythonString, shell=True)
     data = h5py.File(directory + "/" + img_name + ".h5")
     img = data["img_1"]
     img_np = np.array(img)
