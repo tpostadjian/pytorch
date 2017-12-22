@@ -14,6 +14,8 @@ class Model(nn.Module):
         self._initialize_weights()
 
     def forward(self, x):
+
+        ## show output size at each layer
         # ~ for i in range(12):
         # ~ x = self.features[i](x)
         # ~ print(x.size())

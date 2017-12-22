@@ -51,8 +51,6 @@ class ImageDataset(data.Dataset):
     # ~ ------
     def batchGenerator(self, n, class_dic, dataset, batchsize=200):
 
-        global Y
-
         def getClassImg(idx, dic, dataset):
             for key, value in dic.items():
                 imin = value[1]
@@ -106,7 +104,7 @@ class ImageDataset(data.Dataset):
         dataset = []
         n_samples = 0
         file_list = glob.glob(path + '/*.h5')
-        count = 1
+        count = 0
         for f in file_list:
             imgBuffer, n_img = reader(f)
             class_dic[f] = [count, n_samples, n_samples + n_img]

@@ -24,7 +24,7 @@ class Trainer():
             # forward
             img = Variable(img).cuda()
             cls = Variable(cls).long().cuda()
-
             output = self.model.forward(img)
-            print(cls)
+            print(output, cls)
             loss = self.criterion(output, cls)
+            loss.backward()
