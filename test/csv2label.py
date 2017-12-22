@@ -9,10 +9,10 @@ parser.add_argument('-i', help='pixelwise predictions')
 parser.add_argument('-o', help='output classif image')
 args = parser.parse_args()
 
-f_txt =args.i
+f_txt = args.i
 out = args.o
 
-nl, nc = 2036
+nl, nc = 2036, 2036
 
 offset = int(65 / 2)
 txt = np.loadtxt(f_txt)
