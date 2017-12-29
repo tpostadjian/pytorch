@@ -14,7 +14,7 @@ ratio_pix2class = 0.2
 patch_size = 65
 offset = int(patch_size / 2)
 
-seg_flag = False
+seg_flag = True
 
 model = '/media/tpostadjian/Data/These/Test/Results/GPU/test_101/model_float.net'
 net = load_lua(model)
@@ -35,11 +35,11 @@ for img in list_img:
                    + directory + "/" + img_name + ".h5"
     subprocess.call(pythonString, shell=True)
     data = h5py.File(directory + "/" + img_name + ".h5")
-    img = data["img_1"]
-    img_np = np.array(img)
+    img_h5 = data["img_1"]
+    img_np = np.array(img_h5)
 
     # Reduce boundaries to avoid computing on "no data" areas
-    img_noEdge = img_np[0:3, offset:img.shape[1] - offset, offset:img.shape[2] - offset]
+    img_noEdge = img_np[0:3, offset:img_np.shape[1] - offset, offset:img_np.shape[2] - offset]
     nb, nl, nc = img_noEdge.shape
 
     if seg_flag:
@@ -48,7 +48,7 @@ for img in list_img:
 
         # how many segments ?
         seg = io.imread(directory + "/" + img_name + "_seg.tif")
-        seg = seg[offset:img.shape[1] - offset, offset:img.shape[2] - offset]
+        seg = seg[offset:img_np.shape[1] - offset, offset:img_np.shape[2] - offset]
         n_s = np.unique(seg)
 
         # loop over segments (0.015s/segment)
