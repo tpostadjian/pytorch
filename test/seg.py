@@ -49,19 +49,20 @@ def SLIC(img_name, img, n_seg=1000):
     return segments
 
 
-def PFF(img, work_dir, cir=False, sigma=0.8, k=30, min_size=20):
+def PFF(img, cir=False, sigma=0.8, k=30, min_size=10):
     name = os.path.basename(img)
+    out_dir = os.path.dirname(img)
     name = name.split('.')[0]
     # To Byte
     ByteName = name + '_byte.tif'
-    Bytepath = os.path.join(work_dir, ByteName)
+    Bytepath = os.path.join(out_dir, ByteName)
     ByteString = 'Ech_noifst ReetalQuantile ' + img + ' 0.1 0.1 ' + Bytepath
     subprocess.call(ByteString, shell=True)
 
     if cir:
         print('CIR mode')
         CIRName = name + '_byteCIR.tif'
-        CIRpath = os.path.join(work_dir, CIRName)
+        CIRpath = os.path.join(out_dir, CIRName)
         CIRstring = 'gdal_translate -of GTIFF -b 4 -b 1 -b 2 ' + Bytepath + ' ' + CIRpath
         subprocess.call(CIRstring, shell=True)
         in_img = CIRpath
@@ -70,10 +71,13 @@ def PFF(img, work_dir, cir=False, sigma=0.8, k=30, min_size=20):
         in_img = Bytepath
         PFFname = name + '_seg.tif'
     # Segmentation
-    PFFpath = os.path.join(work_dir, PFFname)
+    PFFpath = os.path.join(out_dir, PFFname)
     PFFstring = 'SegmentationPFFst ' + str(sigma) + ' ' + str(k) + ' ' + str(min_size) + ' ' + in_img + ' ' + PFFpath
     subprocess.call(PFFstring, shell=True)
 
+
+# ~ img = 'tile_16500_38500.tif'
+# ~ PFF(img,cir=False)
 
 def PFF_scikit(img, scale=60, sigma=0.8, min_size=20):
     img = io.imread(img)
