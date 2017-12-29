@@ -1,114 +1,51 @@
-import torch
-from torch.utils.serialization import load_lua
-from seg import PFF
+from seg import SLIC, PFF
 import subprocess
 import numpy as np
 import time
 from glob import glob as glob
-import os
-import h5py
 from skimage import io
-import progressbar
+import pandas as pd
 
-ratio_pix2class = 0.2
+ratio_pix2class = 0.4
 patch_size = 65
-offset = int(patch_size / 2)
-
-seg_flag = False
-
-model = '/media/tpostadjian/Data/These/Test/Results/GPU/test_101/model_float.net'
-net = load_lua(model)
-net.modules[1].modules[0] = torch.legacy.nn.View(1, 2048)
-net = net.cuda()
-
-list_img = glob("../test_set/tile_16500_38500.tif")
-directory = os.path.dirname(list_img[0])
-
+offset = int(65 / 2)
+list_img = glob('tile_16500_38500_seg.tif')
+listlabel = pd.read_table('pixelwiseListLabels.csv', delimiter=' ', decimal=',')
+listlabel = np.array(listlabel)
+count = 0
+x_pix = 0
+y_pix = 0
 # Loop over tiles covering the ROI
-for img in list_img:
-
-    # conversion to hdf5
-    tile = os.path.basename(img)
-    img_name = tile.split('.')[0]
-    pythonString = "/usr/bin/python2.7 tif2h5.py " \
-                   + img + " " \
-                   + directory + "/" + img_name + ".h5"
-    subprocess.call(pythonString, shell=True)
-    data = h5py.File(directory + "/" + img_name + ".h5")
-    img = data["img_1"]
-    img_np = np.array(img)
-
+for im in list_img:
+    print(im)
+    img = io.imread(im)
     # Reduce boundaries to avoid computing on "no data" areas
-    img_noEdge = img_np[0:3, offset:img.shape[1] - offset, offset:img.shape[2] - offset]
-    nb, nl, nc = img_noEdge.shape
-
-    if seg_flag:
-        # image segmentation
-        PFF(img)
-
-        # how many segments ?
-        seg = io.imread(directory + "/" + img_name + "_seg.tif")
-        seg = seg[offset:img.shape[1] - offset, offset:img.shape[2] - offset]
-        n_s = np.unique(seg)
-
-        # loop over segments (0.015s/segment)
-        start_time = time.time()
-
-        # file to store class probabilities
-        f = open(img_name + "_pred_seg_"+str(ratio_pix2class*100)+"%.txt", "w")
-
-        print("********************* Classification running *********************")
-        bar = progressbar.ProgressBar(maxval=n_s.shape[0]).start()
-        count = 1
-        for id_seg in n_s:
-            # retrieve pixels indices for given segment (np.where takes time!)
-            seg_ind = np.where(seg == id_seg)
-            n_pix_seg = seg_ind[0].shape[0]
-
-            # randomly draw pixels within the current segment
-            n_pix2class = int(n_pix_seg * ratio_pix2class)
-            pix2class = np.random.randint(n_pix_seg, size=n_pix2class)
-            ind_pix2class = [seg_ind[0][pix2class], seg_ind[1][pix2class]]
-
-            # Classify each picked pixel
-            for pix in range(n_pix2class):
-                x_pix = ind_pix2class[0][pix] + offset
-                y_pix = ind_pix2class[1][pix] + offset
-                patch = img_np[:, x_pix - offset:x_pix + offset + 1, y_pix - offset:y_pix + offset + 1]
-                patch_torch = torch.from_numpy(patch)
-                # cast net to cuda
-                patch_torch_f = patch_torch.float().cuda()
-                preds = net.forward(patch_torch_f)
-                probas = preds.exp()
-                probas_np = np.array([probas[0, 0], probas[0, 1], probas[0, 2], probas[0, 3], probas[0, 4]])
-                f.write("%d %.3f %.3f %.3f %.3f %.3f\n" % (
-                        id_seg, probas_np[0], probas_np[1], probas_np[2], probas_np[3], probas_np[4]))
-            bar.update(count)
+    seg = img[offset:img.shape[0] - offset, offset:img.shape[1] - offset]
+    nl, nc = seg.shape
+    print(nl, nc)
+    # how many segments ?
+    n_s = np.unique(seg)
+    # loop over segments (0.0166s/segment)
+    start_time = time.time()
+    # file to store class probabilities
+    img_name = im.split('.')[0]
+    f = open(img_name + '_pred40%.txt', 'w')
+    print("********************* Classification running *********************")
+    for id_seg in n_s:
+        # retrieve pixels indices for given segment (np.where takes time!)
+        seg_ind = np.where(seg == id_seg)
+        n_pix_seg = seg_ind[0].shape[0]
+        # randomly pick pixels in the current segment
+        n_pix2class = int(n_pix_seg * ratio_pix2class)
+        pix2class = np.random.randint(n_pix_seg, size=n_pix2class)
+        ind_pix2class = [seg_ind[0][pix2class], seg_ind[1][pix2class]]
+        # Classify each picked pixel
+        for pix in range(n_pix2class):
+            x_pix = ind_pix2class[0][pix]
+            y_pix = ind_pix2class[1][pix]
+            line = listlabel[x_pix * nc + y_pix, :]
+            f.write("%d %.3f %.3f %.3f %.3f %.3f\n" % (id_seg + 1, line[0], line[1], line[2], line[3], line[4]))
             count = count + 1
-        print("******************** Classification: %s seconds ******************" % (time.time() - start_time))
 
-    else:
-        start_time = time.time()
-
-        # file to store class probabilities
-        f = open(img_name + "_pred_pix.txt", "w")
-
-        print("********************* Classification running *********************")
-        bar = progressbar.ProgressBar(maxval=nl*nc).start()
-        count = 0
-        for l in range(nl):
-            for c in range(nc):
-                x_pix = l + offset
-                y_pix = c + offset
-                patch = img_np[:, x_pix - offset:x_pix + offset + 1, y_pix - offset:y_pix + offset + 1]
-                patch_torch = torch.from_numpy(patch)
-                # cast net to cuda
-                patch_torch_f = patch_torch.float().cuda()
-                preds = net.forward(patch_torch_f)
-                probas = preds.exp()
-                probas_np = np.array([probas[0, 0], probas[0, 1], probas[0, 2], probas[0, 3], probas[0, 4]])
-                f.write("%.3f %.3f %.3f %.3f %.3f\n" % (
-                        probas_np[0], probas_np[1], probas_np[2], probas_np[3], probas_np[4]))
-                bar.update(count)
-                count = count + 1
-        print("******************** Classification: %s seconds ******************" % (time.time() - start_time))
+    print("******************** Classification: %s seconds ******************" % (time.time() - start_time))
+    print(x_pix * nl + y_pix)
