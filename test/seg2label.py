@@ -3,6 +3,7 @@ import scipy.ndimage
 import numpy as np
 from scipy.misc import imsave
 import argparse
+import progressbar
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-i', help='prediction over SSPs')
@@ -22,6 +23,8 @@ nl, nc = img.shape
 
 output = np.empty((nl, nc), dtype=int)
 
+bar = progressbar.ProgressBar(maxval=nl*nc).start()
+count = 0
 # Mean
 for i in range(nl):
     for j in range(nc):
@@ -32,7 +35,7 @@ for i in range(nl):
             seg = txt[seg_id][0, 1:6]
             label = seg.argmax()
             output[i, j] = label + 1
-    print(i)
+        bar.update(count)
+        count += 1
 
-print("toto")
 imsave(out, output)

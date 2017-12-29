@@ -20,7 +20,7 @@ txt = np.loadtxt(f_txt)
 output = np.empty((nl, nc), dtype=int)
 
 bar = progressbar.ProgressBar(maxval=nl*nc).start()
-count=0
+count = 0
 for l in range(nl):
     for c in range(nc):
         line = txt[l*nc + c, :]
