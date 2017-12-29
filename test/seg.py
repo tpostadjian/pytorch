@@ -49,9 +49,10 @@ def SLIC(img_name, img, n_seg=1000):
     return segments
 
 
-def PFF(img, cir=False, sigma=0.8, k=30, min_size=20):
+def PFF(img, work_dir, cir=False, sigma=0.8, k=30, min_size=20):
+    print(img)
     name = os.path.basename(img)
-    out_dir = os.path.dirname(img)
+    out_dir = os.path.dirname(work_dir)
     name = name.split('.')[0]
     # To Byte
     ByteName = name + '_byte.tif'
@@ -75,9 +76,6 @@ def PFF(img, cir=False, sigma=0.8, k=30, min_size=20):
     PFFstring = 'SegmentationPFFst ' + str(sigma) + ' ' + str(k) + ' ' + str(min_size) + ' ' + in_img + ' ' + PFFpath
     subprocess.call(PFFstring, shell=True)
 
-
-# ~ img = 'tile_16500_38500.tif'
-# ~ PFF(img,cir=False)
 
 def PFF_scikit(img, scale=60, sigma=0.8, min_size=20):
     img = io.imread(img)
