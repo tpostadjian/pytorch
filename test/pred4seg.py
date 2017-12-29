@@ -12,9 +12,20 @@ import progressbar
 import argparse
 from scipy.sparse import csr_matrix
 
+
+def str2bool(v):
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument('-d', help='results directory')
-parser.add_argument('-f', help='segmentation flag')
+parser.add_argument("-s", type=str2bool, nargs='?',
+                    const=True, help="Activate nice mode.")
 args = parser.parse_args()
 
 
@@ -28,7 +39,8 @@ def get_indices_sparse(data):
     M = compute_sparse(data)
     return [np.unravel_index(row.data, data.shape) for row in M]
 
-#@profile
+
+# @profile
 def prediction(work_dir, seg_flag=False, img_dir="../test_set/tile_16500_38500.tif", ratio_pix2class=0.2,
                patch_size=65):
     offset = int(patch_size / 2)
@@ -47,8 +59,8 @@ def prediction(work_dir, seg_flag=False, img_dir="../test_set/tile_16500_38500.t
         tile = os.path.basename(img)
         img_name = tile.split('.')[0]
         pythonString = "/usr/bin/python2.7 tif2h5.py " \
-                        + img + " " \
-                        + directory + "/" + img_name + ".h5"
+                       + img + " " \
+                       + directory + "/" + img_name + ".h5"
         subprocess.call(pythonString, shell=True)
         data = h5py.File(directory + "/" + img_name + ".h5")
         img_h5 = data["img_1"]
@@ -104,7 +116,7 @@ def prediction(work_dir, seg_flag=False, img_dir="../test_set/tile_16500_38500.t
                     preds = net.forward(patch)
                     probas = preds.exp()
                     f.write("%d %.3f %.3f %.3f %.3f %.3f\n" % (
-                        id_seg, probas[0,0], probas[0,1], probas[0,2], probas[0,3], probas[0,4]))
+                        id_seg, probas[0, 0], probas[0, 1], probas[0, 2], probas[0, 3], probas[0, 4]))
                 bar.update(count)
                 count = count + 1
             print("******************** Classification: %s seconds ******************" % (time.time() - start_time))
@@ -132,4 +144,4 @@ def prediction(work_dir, seg_flag=False, img_dir="../test_set/tile_16500_38500.t
             print("******************** Classification: %s seconds ******************" % (time.time() - start_time))
 
 
-prediction(args.d, seg_flag=True)
+prediction(args.d, seg_flag=args.s)
