@@ -26,8 +26,8 @@ output = np.empty((nl, nc), dtype=int)
 for i in range(nl):
     for j in range(nc):
         # ~ seg_id = img[i,j]+1
-        seg_im = img[i, j] + 1
-        seg_id = np.where(txt[:, 0] == seg_im)
+        seg_pix = img[i, j]
+        seg_id = np.where(txt[:, 0] == seg_pix)
         if seg_id[0].shape[0] == 1:
             seg = txt[seg_id][0, 1:6]
             label = seg.argmax()
