@@ -14,7 +14,7 @@ f_out = args.o
 out = open(f_out, 'w')
 bar = progressbar.ProgressBar(maxval=n_seg).start()
 
-for i in range(1, int(n_seg)):
+for i in range(0, int(n_seg)):
     ind_pixs = np.where(f_txt[:, 0] == i)
     pixs = f_txt[ind_pixs][:, 1:6]
     n_pixs = pixs.shape[0]
