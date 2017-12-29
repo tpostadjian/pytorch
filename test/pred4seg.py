@@ -37,11 +37,11 @@ def prediction(work_dir, seg_flag=False, img_dir="../test_set/tile_16500_38500.t
                        + directory + "/" + img_name + ".h5"
         subprocess.call(pythonString, shell=True)
         data = h5py.File(directory + "/" + img_name + ".h5")
-        img = data["img_1"]
-        img_np = np.array(img)
+        img_h5 = data["img_1"]
+        img_np = np.array(img_h5)
 
         # Reduce boundaries to avoid computing on "no data" areas
-        img_noEdge = img_np[0:3, offset:img.shape[1] - offset, offset:img.shape[2] - offset]
+        img_noEdge = img_np[0:3, offset:img_np.shape[1] - offset, offset:img_np.shape[2] - offset]
         nb, nl, nc = img_noEdge.shape
 
         # outputs directory
@@ -56,8 +56,8 @@ def prediction(work_dir, seg_flag=False, img_dir="../test_set/tile_16500_38500.t
             PFF(img, out_dir)
 
             # how many segments ?
-            seg = io.imread(directory + "/" + img_name + "_seg.tif")
-            seg = seg[offset:img.shape[1] - offset, offset:img.shape[2] - offset]
+            seg = io.imread(out_dir + "/" + img_name + "_seg.tif")
+            seg = seg[offset:img_np.shape[1] - offset, offset:img_np.shape[2] - offset]
             n_s = np.unique(seg)
 
             # loop over segments (0.015s/segment)
