@@ -21,7 +21,7 @@ def SPImg(pix_pred, out_img):
             bar.update(count)
             count = count + 1
 
-    imsave(out_img, output)
+    scipy.misc.toimage(output, cmin=0, cmax=255).save(out_img)
 
 
 if __name__ == '__main__':

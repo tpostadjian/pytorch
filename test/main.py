@@ -25,12 +25,6 @@ args = parser.parse_args()
 
 # Pixelwise or Segmentwise
 tag = args.s
-# SSImg --> Semantic Segmentation Img
-# SPImg --> Semantic Pixel Img
-if tag:
-    from seg2label import SSImg
-else:
-    from csv2label import SPImg
 
 work_dir = args.d
 try:
@@ -40,8 +34,9 @@ except FileExistsError:
 img_dir = args.i
 list_img = glob(img_dir+'/*.tif')
 
-
+# SSImg --> Semantic Segmentation Img
 if tag:
+    from seg2label import SSImg
     ratio = args.r
 
     for img in list_img:
@@ -65,7 +60,9 @@ if tag:
         print("---- classif image ----")
         SSImg(out_pred_seg, seg_img, out_img)
 
+# SPImg --> Semantic Pixel Img
 else:
+    from csv2label import SPImg
     for img in list_img:
 
         tile = os.path.basename(img)
@@ -73,7 +70,7 @@ else:
         out_dir = work_dir + '/' + img_name
 
         # full pixel prediction
-        prediction(work_dir, img, tag)
+        #prediction(work_dir, img, tag)
 
         # classification image creation
         preds = out_dir + "/" + img_name + "_pred_pix.txt"
