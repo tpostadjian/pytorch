@@ -22,13 +22,6 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument('-d', help='results directory')
-parser.add_argument("-s", type=str2bool, nargs='?',
-                    const=True, help="Activate nice mode.")
-args = parser.parse_args()
-
-
 def compute_sparse(data):
     cols = np.arange(data.size)
     return csr_matrix((cols, (data.ravel(), cols)),
@@ -41,7 +34,7 @@ def get_indices_sparse(data):
 
 
 # @profile
-def prediction(work_dir, seg_flag=False, img_dir="../test_set/tile_16500_38500.tif", ratio_pix2class=0.2,
+def prediction(work_dir, seg_flag=False, ratio_pix2class=0.2, img_dir="../test_set/tile_16500_38500.tif",
                patch_size=65):
     offset = int(patch_size / 2)
     model = '/media/tpostadjian/Data/These/Test/Results/GPU/test_101/model_float.net'
@@ -92,7 +85,7 @@ def prediction(work_dir, seg_flag=False, img_dir="../test_set/tile_16500_38500.t
             start_time = time.time()
 
             # file to store class probabilities
-            f = open(out_dir + "/" + img_name + "_pred_seg_" + str(ratio_pix2class * 100) + "33%.txt", "w")
+            f = open(out_dir + "/" + img_name + "_pred_seg_" + str(ratio_pix2class * 100) + "%.txt", "w")
 
             seg_ind = get_indices_sparse(seg)
 
@@ -142,6 +135,14 @@ def prediction(work_dir, seg_flag=False, img_dir="../test_set/tile_16500_38500.t
                     bar.update(count)
                     count = count + 1
             print("******************** Classification: %s seconds ******************" % (time.time() - start_time))
+            f.close()
 
 
-prediction(args.d, seg_flag=args.s)
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', help='results directory')
+    parser.add_argument("-s", type=str2bool, nargs='?',
+                        const=True, help="segmentation flag.")
+    args = parser.parse_args()
+
+    prediction(args.d, seg_flag=args.s)
