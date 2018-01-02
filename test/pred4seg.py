@@ -49,11 +49,11 @@ def prediction(work_dir, img, seg_flag=False, ratio_pix2class=0.2,
     # conversion to hdf5
     pythonString = "/usr/bin/python2.7 tif2h5.py " \
                    + img + " " \
-                   + directory + "/" + img_name + ".h5"
+                   + work_dir + "/" + img_name + ".h5"
     subprocess.call(pythonString, shell=True)
 
     # hdf5 --> numpy --> torch float cuda
-    data = h5py.File(directory + "/" + img_name + ".h5")
+    data = h5py.File(work_dir + "/" + img_name + ".h5")
     img_h5 = data["img_1"]
     img_np = np.array(img_h5)
     img_torch = torch.from_numpy(img_np)
@@ -72,6 +72,7 @@ def prediction(work_dir, img, seg_flag=False, ratio_pix2class=0.2,
 
     if seg_flag:
         # image segmentation
+        print('----- segmentation -----')
         PFF(img, out_dir)
 
         # how many segments ?
@@ -83,11 +84,11 @@ def prediction(work_dir, img, seg_flag=False, ratio_pix2class=0.2,
         start_time = time.time()
 
         # file to store class probabilities
-        f = open(out_dir + "/" + img_name + "_pred_pix_" + str(ratio_pix2class * 100) + "%.txt", "w")
+        f = open(out_dir + "/" + img_name + "_pred_pix_" + str(int(ratio_pix2class * 100)) + ".txt", "w")
 
         seg_ind = get_indices_sparse(seg)
 
-        print("********************* Classification running *********************")
+        print("----- classification is running ! -----")
         bar = progressbar.ProgressBar(maxval=n_s.shape[0]).start()
         count = 1
         for id_seg in n_s:
@@ -110,7 +111,7 @@ def prediction(work_dir, img, seg_flag=False, ratio_pix2class=0.2,
                     id_seg, probas[0, 0], probas[0, 1], probas[0, 2], probas[0, 3], probas[0, 4]))
             bar.update(count)
             count = count + 1
-        print("******************** Classification: %s seconds ******************" % (time.time() - start_time))
+        print("Classification took: %s seconds -----" % (time.time() - start_time))
 
     else:
         start_time = time.time()
@@ -118,7 +119,7 @@ def prediction(work_dir, img, seg_flag=False, ratio_pix2class=0.2,
         # file to store class probabilities
         f = open(out_dir + "/" + img_name + "_pred_pix.txt", "w")
 
-        print("********************* Classification running *********************")
+        print("----- classification is running ! -----")
         bar = progressbar.ProgressBar(maxval=nl * nc).start()
         count = 0
         for l in range(nl):
@@ -132,7 +133,7 @@ def prediction(work_dir, img, seg_flag=False, ratio_pix2class=0.2,
                     probas[0, 0], probas[0, 1], probas[0, 2], probas[0, 3], probas[0, 4]))
                 bar.update(count)
                 count = count + 1
-        print("******************** Classification: %s seconds ******************" % (time.time() - start_time))
+        print("Classification took: %s seconds -----" % (time.time() - start_time))
         f.close()
 
 

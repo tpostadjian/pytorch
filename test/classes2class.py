@@ -2,21 +2,16 @@ import numpy as np
 import argparse
 import progressbar
 
-parser = argparse.ArgumentParser()
-parser.add_argument('-i', help='prediction over SSPs')
-parser.add_argument('-o', help='output merged predictions')
-args = parser.parse_args()
-
 
 def classDecision(all_pred, seg_pred):
-    f_txt = np.loadtxt(all_pred)
-    n_seg = f_txt.max()
+    preds = np.loadtxt(all_pred)
+    n_seg = preds.max()
     out = open(seg_pred, 'w')
     bar = progressbar.ProgressBar(maxval=n_seg).start()
 
     for i in range(0, int(n_seg)):
-        ind_pixs = np.where(f_txt[:, 0] == i)
-        pixs = f_txt[ind_pixs][:, 1:6]
+        ind_pixs = np.where(preds[:, 0] == i)
+        pixs = preds[ind_pixs][:, 1:6]
         n_pixs = pixs.shape[0]
         if n_pixs == 0:
             continue
@@ -40,6 +35,11 @@ def classDecision(all_pred, seg_pred):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', help='prediction over SSPs')
+    parser.add_argument('-o', help='output merged predictions')
+    args = parser.parse_args()
+
     f_txt = args.i
     f_out = args.o
 
