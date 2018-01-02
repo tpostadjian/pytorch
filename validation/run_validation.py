@@ -4,8 +4,28 @@ from glob import glob as glob
 list_img = glob("../test_set/finistere/*.tif")
 
 
-classif_str = "test/main.py -i test_set/finistere -d test/finistere -s t -r 0.2"
+classif_str = "/home/tpostadjian/anaconda3/bin/python ../test/main.py -i ../test_set/finistere -d ../test/finistere -s t -r 0.2"
 subprocess.call(classif_str, shell=True)
+
+classif_str = "/home/tpostadjian/anaconda3/bin/python ../test/main.py -i ../test_set/finistere -d ../test/finistere -s t -r 0.4"
+subprocess.call(classif_str, shell=True)
+
+classif_str = "/home/tpostadjian/anaconda3/bin/python ../test/main.py -i ../test_set/finistere -d ../test/finistere -s t -r 0.6"
+subprocess.call(classif_str, shell=True)
+
+classif_str = "/home/tpostadjian/anaconda3/bin/python ../test/main.py -i ../test_set/gironde -d ../test/gironde -s t -r 0.2"
+subprocess.call(classif_str, shell=True)
+
+classif_str = "/home/tpostadjian/anaconda3/bin/python ../test/main.py -i ../test_set/gironde -d ../test/gironde -s t -r 0.4"
+subprocess.call(classif_str, shell=True)
+
+classif_str = "/home/tpostadjian/anaconda3/bin/python ../test/main.py -i ../test_set/gironde -d ../test/gironde -s t -r 0.6"
+subprocess.call(classif_str, shell=True)
+
+
+
+
+
 
 valid_str = "/usr/bin/python2.7 validation/validation.py -l /media/tpostadjian/Data/These/Test/data/gironde/BDTOPO/A_RESEAU_ROUTIER/" \
             "route_primaire_secondaire_poly.shp /media/tpostadjian/Data/These/Test/data/gironde/BDTOPO/E_BATI/BATI_INDIFFERENCIE.SHP " \

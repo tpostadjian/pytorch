@@ -47,9 +47,10 @@ def prediction(work_dir, img, seg_flag=False, ratio_pix2class=0.2,
     img_name = tile.split('.')[0]
 
     # conversion to hdf5
-    pythonString = "/usr/bin/python2.7 tif2h5.py " \
+    pythonString = "/usr/bin/python2.7 ../test/tif2h5.py " \
                    + img + " " \
                    + work_dir + "/" + img_name + ".h5"
+    print(pythonString)
     subprocess.call(pythonString, shell=True)
 
     # hdf5 --> numpy --> torch float cuda
