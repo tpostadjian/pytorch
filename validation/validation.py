@@ -49,7 +49,7 @@ for shp in list_shapefile:
     cls_name = os.path.splitext(os.path.basename(shp))[0]
     shutil.move(output, mask_dir + '/' + cls_name + '.tif')
 
-concat_str = "Legendest masques2label:sansconflit legende.txt " + mask_dir + "/" + " masks/" + img_name + "/gt.tif "
+concat_str = "Legendest masques2label:sansconflit legende_for_concac.txt " + mask_dir + "/" + " masks/" + img_name + "/gt.tif "
 subprocess.call(concat_str, shell=True)
 
 eval_str = "Evalst " + raster + " " + mask_dir + "/gt.tif " + valid_dir + "/bm.tif legende.txt " + valid_dir + "/mat2conf.txt --Kappa"
