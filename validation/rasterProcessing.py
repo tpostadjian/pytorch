@@ -36,26 +36,18 @@ def array2raster(srcImg, newRaster, listOfArrays, n_bands, reductionBounds=False
         cols = ds_raster.RasterXSize - patch_size
         rows = ds_raster.RasterYSize - patch_size
         outRaster = driver.Create(newRaster, cols, rows, rasterBandCount, gdal.GDT_Byte, ['COMPRESS=LZW'])
-        outRaster.SetGeoTransform(( \
-            geoTransform[0] + int(geoTransform[1] * patch_size / 2), \
-            geoTransform[1], \
-            geoTransform[2], \
-            geoTransform[3] + int(geoTransform[5] * patch_size / 2), \
-            geoTransform[4], \
-            geoTransform[5]))
+        outRaster.SetGeoTransform((\
+            geoTransform[0] + int(geoTransform[1] * patch_size / 2), geoTransform[1], geoTransform[2],
+            geoTransform[3] + int(geoTransform[5] * patch_size / 2), geoTransform[4], geoTransform[5]))
 
     elif trainingSelection == True:
         driver = gdal.GetDriverByName('GTiff')
         cols = patch_size
         rows = patch_size
         outRaster = driver.Create(newRaster, cols, rows, rasterBandCount, gdal.GDT_Int32)
-        outRaster.SetGeoTransform(( \
-            geoTransform[0] + geoTransform[1] * (pixY - int(patch_size / 2)), \
-            geoTransform[1], \
-            geoTransform[2], \
-            geoTransform[3] + geoTransform[5] * (pixX - int(patch_size / 2)), \
-            geoTransform[4], \
-            geoTransform[5]))
+        outRaster.SetGeoTransform((\
+            geoTransform[0] + geoTransform[1] * (pixY - int(patch_size / 2)), geoTransform[1], geoTransform[2],
+            geoTransform[3] + geoTransform[5] * (pixX - int(patch_size / 2)), geoTransform[4], geoTransform[5]))
 
     else:
         driver = gdal.GetDriverByName('GTiff')
