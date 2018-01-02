@@ -5,7 +5,6 @@ from scipy.misc import imsave
 import argparse
 import progressbar
 
-
 parser = argparse.ArgumentParser()
 parser.add_argument('-i', help='prediction over SSPs')
 parser.add_argument('-a', help='SSPs image')
@@ -24,8 +23,9 @@ nl, nc = img.shape
 
 output = np.empty((nl, nc), dtype=int)
 
+bar = progressbar.ProgressBar(maxval=nl*nc).start()
+count = 0
 # Mean
-bar = progressbar.ProgressBar(maxval=nl).start()
 for i in range(nl):
     for j in range(nc):
         # ~ seg_id = img[i,j]+1
@@ -35,6 +35,7 @@ for i in range(nl):
             seg = txt[seg_id][0, 1:6]
             label = seg.argmax()
             output[i, j] = label + 1
-    bar.update(i)
+        bar.update(count)
+        count += 1
 
 imsave(out, output)
