@@ -6,7 +6,7 @@ import argparse
 import progressbar
 
 
-def SSImg(seg_pred, seg_img, out_img, patchsize):
+def SSImg(seg_pred, seg_img, out_img, patchsize=65):
     txt = np.loadtxt(seg_pred)
     img = scipy.ndimage.imread(seg_img)
     offset = int(patchsize / 2)
