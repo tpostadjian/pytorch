@@ -10,17 +10,15 @@ def SSImg(seg_pred, seg_img, out_img, patchsize=65):
     txt = np.loadtxt(seg_pred)
     img = scipy.ndimage.imread(seg_img)
     offset = int(patchsize / 2)
-    img = img[offset:img.shape[0] - offset, offset:img.shape[1] - offset]
-    print(img.shape)
     nl, nc = img.shape
 
-    output = np.empty((nl, nc), dtype=int)
+    output = np.empty(img.shape, dtype=int)
 
     bar = progressbar.ProgressBar(maxval=nl * nc).start()
     count = 0
 
-    for i in range(nl):
-        for j in range(nc):
+    for i in range(offset, nl-offset):
+        for j in range(offset, nc-offset):
             seg_pix = img[i, j]
             seg_id = np.where(txt[:, 0] == seg_pix)
             if seg_id[0].shape[0] == 1:

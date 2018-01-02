@@ -1,8 +1,6 @@
 # !/usr/bin/python2.7
 # -*-coding:Latin-1 -*
 
-from osgeo import gdal, ogr
-import numpy as np
 from rasterProcessing import raster2array, getNoDataValue, array2raster
 
 

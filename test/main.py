@@ -3,6 +3,8 @@ from classes2class import classDecision
 import argparse
 from glob import glob as glob
 import os
+import subprocess
+import shutil
 
 
 def str2bool(v):
@@ -40,6 +42,7 @@ if tag:
     ratio = args.r
 
     for img in list_img:
+        print("*******************************************")
         print(img)
         tile = os.path.basename(img)
         img_name = tile.split('.')[0]
@@ -59,20 +62,30 @@ if tag:
         out_img = out_dir+'/'+img_name+'_classif_'+str(int(ratio * 100))+'.tif'
         print("---- classif image ----")
         SSImg(out_pred_seg, seg_img, out_img)
+        print("*******************************************")
+
+        # geo-referencing
+        tfw = out_dir+'/'+img_name+'_classif_'+str(int(ratio * 100))+'.tfw'
+        tfw_str = "listgeo -tfw " + img
+        subprocess.call(tfw_str, shell=True)
+        shutil.move(img_dir+"/"+img_name+".tfw", out_dir+'/'+img_name+'_classif_'+str(int(ratio * 100))+".tfw")
+
 
 # SPImg --> Semantic Pixel Img
 else:
     from csv2label import SPImg
     for img in list_img:
-
+        print("*******************************************")
+        print(img)
         tile = os.path.basename(img)
         img_name = tile.split('.')[0]
         out_dir = work_dir + '/' + img_name
 
         # full pixel prediction
-        #prediction(work_dir, img, tag)
+        prediction(work_dir, img, tag)
 
         # classification image creation
         preds = out_dir + "/" + img_name + "_pred_pix.txt"
         out = out_dir + '/' + img_name + '_classif_pix.tif'
         SPImg(preds, out)
+        print("*******************************************")

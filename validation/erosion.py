@@ -2,11 +2,10 @@
 # -*-coding:Latin-1 -*
 
 from osgeo import gdal, gdalnumeric, ogr, osr
-import Image, ImageDraw
 import numpy as np
 from scipy import ndimage
-from rasterProcessing import raster2array, array2raster
-import os, time
+from rasterProcessing import array2raster
+import time
 
 
 # Draw random polygon of a class within layer for training

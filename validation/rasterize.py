@@ -2,7 +2,6 @@
 # -*-coding:Latin-1 -*
 
 from osgeo import gdal, ogr
-import subprocess
 
 
 # Create a raster with parameters of another raster
@@ -25,7 +24,7 @@ def rasterFromBase(raster_ROI, out_raster, format, datatype):
 
 # Binary rasterization (255 : polygons belonging to the desired class
 #						0 : others polygons)
-def raster_mask(path2shapefile, raster_ROI, field, attribute_filter, class_selection, splitting=True):
+def raster_mask(path2shapefile, raster_ROI, field, attribute_filter, class_selection, splitting):
     RASTERIZE_COLOR_FIELD = "__color__"
 
     # Input image
@@ -41,7 +40,7 @@ def raster_mask(path2shapefile, raster_ROI, field, attribute_filter, class_selec
     layer_def = layer.GetLayerDefn()
     fieldIndex = layer_def.GetFieldIndex(RASTERIZE_COLOR_FIELD)
 
-    if splitting == True:
+    if splitting:
         # Query to keep only class-belonging polygons
         for feature in layer:
             if feature.GetField(field) == attribute_filter:

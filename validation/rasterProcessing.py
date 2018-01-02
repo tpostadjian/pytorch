@@ -2,8 +2,6 @@
 # -*-coding:Latin-1 -*
 
 from osgeo import gdal, ogr
-import math
-import numpy as np
 
 
 #
