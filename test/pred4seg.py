@@ -46,15 +46,22 @@ def prediction(work_dir, img, seg_flag=False, ratio_pix2class=0.2,
     tile = os.path.basename(img)
     img_name = tile.split('.')[0]
 
+    # outputs directory
+    out_dir = work_dir + '/' + img_name
+    try:
+        os.mkdir(out_dir)
+    except FileExistsError:
+        pass
+
     # conversion to hdf5
     pythonString = "/usr/bin/python2.7 ../test/tif2h5.py " \
                    + img + " " \
-                   + work_dir + "/" + img_name + ".h5"
+                   + out_dir + "/" + img_name + ".h5"
     print(pythonString)
     subprocess.call(pythonString, shell=True)
 
     # hdf5 --> numpy --> torch float cuda
-    data = h5py.File(work_dir + "/" + img_name + ".h5")
+    data = h5py.File(out_dir + "/" + img_name + ".h5")
     img_h5 = data["img_1"]
     img_np = np.array(img_h5)
     img_torch = torch.from_numpy(img_np)
@@ -63,13 +70,6 @@ def prediction(work_dir, img, seg_flag=False, ratio_pix2class=0.2,
     # Handle edges
     img_noEdge = img_np[0:3, offset:img_np.shape[1] - offset, offset:img_np.shape[2] - offset]
     nb, nl, nc = img_noEdge.shape
-
-    # outputs directory
-    out_dir = work_dir + '/' + img_name
-    try:
-        os.mkdir(out_dir)
-    except FileExistsError:
-        pass
 
     if seg_flag:
         # image segmentation

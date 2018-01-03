@@ -16,7 +16,7 @@ def str2bool(v):
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-l", nargs='+', help="Input shapefile list", required=True)
-parser.add_argument("-r", type=str, help="Input raster", required=True)
+parser.add_argument("-r", type=str, help="Input classification", required=True)
 parser.add_argument("-o", type=str, help="Output directory", required=True)
 parser.add_argument("-f", type=str, help="Field to filter")
 parser.add_argument("-s", type=str2bool, nargs='?', const=True, help="Split classes within same shapefile - vs. - "
