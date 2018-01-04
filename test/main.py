@@ -21,13 +21,14 @@ parser.add_argument('-i', help='input image directory')
 parser.add_argument('-d', help='results directory')
 parser.add_argument('-s', type=str2bool, nargs='?',
                     const=True, help='Segmentation flag.')
+parser.add_argument('-m', help='net architecture')
 parser.add_argument('-r', type=float, help='segmentation case: pixel density to classify - 1 is full prediction')
 args = parser.parse_args()
 
 
 # Pixelwise or Segmentwise
 tag = args.s
-
+model = args.m
 work_dir = args.d
 try:
     os.mkdir(work_dir)
@@ -49,7 +50,7 @@ if tag:
         out_dir = work_dir + '/' + img_name
 
         # partial pixel prediction per segment
-        prediction(work_dir, img, tag, ratio)
+        prediction(work_dir, img, tag, ratio, model)
 
         # majority decision
         in_pred_pix = out_dir + "/" + img_name + "_pred_pix_" + str(int(ratio * 100)) + ".txt"
@@ -65,27 +66,33 @@ if tag:
         print("*******************************************")
 
         # geo-referencing
-        tfw = out_dir+'/'+img_name+'_classif_'+str(int(ratio * 100))+'.tfw'
+        tfw_dir = out_dir+'/'+img_name+'_classif_'+str(int(ratio * 100))+'.tfw'
         tfw_str = "listgeo -tfw " + img
         subprocess.call(tfw_str, shell=True)
-        shutil.move(img_dir+"/"+img_name+".tfw", out_dir+'/'+img_name+'_classif_'+str(int(ratio * 100))+".tfw")
+        shutil.move(img_dir+"/"+img_name+".tfw", tfw_dir)
 
 
 # SPImg --> Semantic Pixel Img
 else:
     from csv2label import SPImg
     for img in list_img:
-        print("*******************************************")
+        # print("*******************************************")
         print(img)
         tile = os.path.basename(img)
         img_name = tile.split('.')[0]
         out_dir = work_dir + '/' + img_name
 
         # full pixel prediction
-        prediction(work_dir, img, tag)
+        prediction(work_dir, img, model, tag)
 
         # classification image creation
         preds = out_dir + "/" + img_name + "_pred_pix.txt"
         out = out_dir + '/' + img_name + '_classif_pix.tif'
         SPImg(preds, out)
         print("*******************************************")
+
+        # geo-referencing
+        tfw_dir = out_dir+'/'+img_name+'_classif_pix.tfw'
+        tfw_str = "listgeo -tfw " + img
+        subprocess.call(tfw_str, shell=True)
+        shutil.move(img_dir+"/"+img_name+".tfw", tfw_dir)

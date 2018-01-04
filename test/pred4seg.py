@@ -33,16 +33,14 @@ def get_indices_sparse(data):
 
 
 # @profile
-def prediction(work_dir, img, seg_flag=False, ratio_pix2class=0.2,
+def prediction(work_dir, img, seg_flag=False, ratio_pix2class=0.2, model=None,
                patch_size=65):
 
     offset = int(patch_size / 2)
-    model = '/media/tpostadjian/Data/These/Test/Results/GPU/test_101/model_float.net'
     net = load_lua(model)
     net.modules[1].modules[0] = torch.legacy.nn.View(1, 2048)
     net = net.cuda()
 
-    directory = os.path.dirname(img[0])
     tile = os.path.basename(img)
     img_name = tile.split('.')[0]
 
@@ -57,7 +55,6 @@ def prediction(work_dir, img, seg_flag=False, ratio_pix2class=0.2,
     pythonString = "/usr/bin/python2.7 ../test/tif2h5.py " \
                    + img + " " \
                    + out_dir + "/" + img_name + ".h5"
-    print(pythonString)
     subprocess.call(pythonString, shell=True)
 
     # hdf5 --> numpy --> torch float cuda
