@@ -50,7 +50,7 @@ if tag:
         out_dir = work_dir + '/' + img_name
 
         # partial pixel prediction per segment
-        prediction(work_dir, img, tag, ratio, model)
+        # prediction(work_dir, img, tag, model, ratio)
 
         # majority decision
         in_pred_pix = out_dir + "/" + img_name + "_pred_pix_" + str(int(ratio * 100)) + ".txt"
@@ -83,7 +83,7 @@ else:
         out_dir = work_dir + '/' + img_name
 
         # full pixel prediction
-        prediction(work_dir, img, model, tag)
+        prediction(work_dir, img, tag, model)
 
         # classification image creation
         preds = out_dir + "/" + img_name + "_pred_pix.txt"

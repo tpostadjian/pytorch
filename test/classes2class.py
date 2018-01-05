@@ -6,10 +6,11 @@ import progressbar
 def classDecision(all_pred, seg_pred):
     preds = np.loadtxt(all_pred)
     n_seg = preds.max()
+    print(n_seg)
     out = open(seg_pred, 'w')
     bar = progressbar.ProgressBar(maxval=n_seg).start()
 
-    for i in range(0, int(n_seg)):
+    for i in range(0, int(n_seg)+1):
         ind_pixs = np.where(preds[:, 0] == i)
         pixs = preds[ind_pixs][:, 1:6]
         n_pixs = pixs.shape[0]

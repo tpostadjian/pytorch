@@ -33,7 +33,7 @@ def get_indices_sparse(data):
 
 
 # @profile
-def prediction(work_dir, img, seg_flag=False, ratio_pix2class=0.2, model=None,
+def prediction(work_dir, img, seg_flag=False, model=None, ratio_pix2class=0.2,
                patch_size=65):
 
     offset = int(patch_size / 2)
@@ -70,8 +70,9 @@ def prediction(work_dir, img, seg_flag=False, ratio_pix2class=0.2, model=None,
 
     if seg_flag:
         # image segmentation
-        print('----- segmentation -----')
-        PFF(img, out_dir)
+        if not os.path.isfile(out_dir + "/" + img_name + "_seg.tif"):
+            print('----- segmentation -----')
+            PFF(img, out_dir)
 
         # how many segments ?
         seg = io.imread(out_dir + "/" + img_name + "_seg.tif")
@@ -90,7 +91,7 @@ def prediction(work_dir, img, seg_flag=False, ratio_pix2class=0.2, model=None,
         bar = progressbar.ProgressBar(maxval=n_s.shape[0]).start()
         count = 1
         for id_seg in n_s:
-            # retrieve pixels indices for given segment (np.where takes time!)
+            # retrieve pixels indices for given segment
             n_pix_seg = seg_ind[id_seg][0].shape[0]
 
             # randomly draw pixels within the current segment

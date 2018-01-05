@@ -58,6 +58,5 @@ def raster_mask(path2shapefile, raster_ROI, field, attribute_filter, class_selec
 
     else:
         raster_out_filtered = class_selection + "_rasterized.tif"
-        print(raster_out_filtered)
         raster_ds_filtered = rasterFromBase(ds_raster, raster_out_filtered, 'GTiff', gdal.GDT_Byte)
         gdal.RasterizeLayer(raster_ds_filtered, [1], layer, None, None, burn_values=[255])

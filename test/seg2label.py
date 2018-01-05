@@ -1,9 +1,19 @@
 import scipy
 import scipy.ndimage
 import numpy as np
-from scipy.misc import imsave
 import argparse
-import progressbar
+from scipy.sparse import csr_matrix
+
+
+def compute_sparse(data):
+    cols = np.arange(data.size)
+    return csr_matrix((cols, (data.ravel(), cols)),
+                      shape=(data.max() + 1, data.size))
+
+
+def get_indices_sparse(data):
+    M = compute_sparse(data)
+    return [np.unravel_index(row.data, data.shape) for row in M]
 
 
 def SSImg(seg_pred, seg_img, out_img, patchsize=65):
@@ -14,28 +24,30 @@ def SSImg(seg_pred, seg_img, out_img, patchsize=65):
 
     output = np.empty(img.shape, dtype=int)
 
-    bar = progressbar.ProgressBar(maxval=nl * nc).start()
+    seg_r = img[offset:nl - offset, offset:nc - offset]
+    tmp = np.empty(seg_r.shape, dtype=int)
+
+    seg_inds = get_indices_sparse(seg_r)
+    seg_inds.remove(seg_inds[0])
+
     count = 0
 
-    for i in range(offset, nl-offset):
-        for j in range(offset, nc-offset):
-            seg_pix = img[i, j]
-            seg_id = np.where(txt[:, 0] == seg_pix)
-            if seg_id[0].shape[0] == 1:
-                seg = txt[seg_id][0, 1:6]
-                label = seg.argmax()
-                output[i, j] = label + 1
-            bar.update(count)
+    for s in seg_inds:
+        if not (len(s[0]) == 0 or int(len(s[0])*0.2) == 0):
+            line = txt[count][1:6]
+            label = line.argmax() + 1
+            tmp[s[0], s[1]] = label
             count += 1
 
+    output[offset:nl - offset, offset:nc - offset] = tmp
     scipy.misc.toimage(output, cmin=0, cmax=255).save(out_img)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', help='prediction over SSPs')
-    parser.add_argument('-a', help='SSPs image')
-    parser.add_argument('-o', help='output classification image')
+    parser.add_argument('i', help='prediction over SSPs')
+    parser.add_argument('a', help='SSPs image')
+    parser.add_argument('o', help='output classification image')
     args = parser.parse_args()
 
     f_txt = args.i

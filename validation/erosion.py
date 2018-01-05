@@ -8,7 +8,6 @@ from rasterProcessing import array2raster
 import time
 
 
-# Draw random polygon of a class within layer for training
 def Erode(base_raster, base_name, bin_dir):
     # Erosion for edge problems
     ds = gdal.Open(base_raster)

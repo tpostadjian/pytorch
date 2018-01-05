@@ -37,6 +37,7 @@ classif_name = os.path.splitext(os.path.basename(classif))[0]
 mask_dir = outDir + '/masks/' + img_name
 valid_dir = outDir + '/cross_validation/' + classif_name
 
+print(classif_name)
 try:
     os.makedirs(mask_dir)
 except OSError:
