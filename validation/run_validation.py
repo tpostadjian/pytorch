@@ -3,17 +3,17 @@ from glob import glob as glob
 import os
 
 #segment finistere
-classif_str = "/home/tpostadjian/anaconda3/bin/python ../test/main.py -i ../test_set/finistere -d ../test/finistere -s t -m ../model/model_finistere_float.net -r 0.2"
-subprocess.call(classif_str, shell=True)
+#classif_str = "/home/tpostadjian/anaconda3/bin/python ../test/main.py -i ../test_set/finistere -d ../test/finistere -s t -m ../model/model_finistere_float.net -r 0.2"
+#subprocess.call(classif_str, shell=True)
 
 classif_str = "/home/tpostadjian/anaconda3/bin/python ../test/main.py -i ../test_set/finistere -d ../test/finistere -s t -m ../model/model_finistere_float.net -r 0.4"
 subprocess.call(classif_str, shell=True)
 #
-classif_str = "/home/tpostadjian/anaconda3/bin/python ../test/main.py -i ../test_set/finistere -d ../test/finistere -s t -m ../model/model_finistere_float.net -r 0.6"
-subprocess.call(classif_str, shell=True)
+#classif_str = "/home/tpostadjian/anaconda3/bin/python ../test/main.py -i ../test_set/finistere -d ../test/finistere -s t -m ../model/model_finistere_float.net -r 0.6"
+#subprocess.call(classif_str, shell=True)
 #
-classif_str = "/home/tpostadjian/anaconda3/bin/python ../test/main.py -i ../test_set/finistere -d ../test/finistere -s t -m ../model/model_finistere_float.net -r 0.8"
-subprocess.call(classif_str, shell=True)
+#classif_str = "/home/tpostadjian/anaconda3/bin/python ../test/main.py -i ../test_set/finistere -d ../test/finistere -s t -m ../model/model_finistere_float.net -r 0.8"
+#subprocess.call(classif_str, shell=True)
 #
 #pixel finistere
 # classif_str = "/home/tpostadjian/anaconda3/bin/python ../test/main.py -i ../test_set/finistere -d ../test/finistere -s f -m ../model/model_finistere_float.net -r 0.6"
