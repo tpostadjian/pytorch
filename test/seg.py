@@ -9,6 +9,7 @@ import os
 import time
 import subprocess
 import matplotlib.pyplot as plt
+import argparse
 
 
 def SLIC(img_name, img, n_seg=1000):
@@ -49,35 +50,35 @@ def SLIC(img_name, img, n_seg=1000):
     return segments
 
 
-def PFF(img, cir=False, sigma=0.8, k=30, min_size=20):
+def PFF(img, work_dir, cir=False, sigma=0.8, k=30, min_size=20):
     name = os.path.basename(img)
-    out_dir = os.path.dirname(img)
     name = name.split('.')[0]
     # To Byte
     ByteName = name + '_byte.tif'
-    Bytepath = os.path.join(out_dir, ByteName)
-    ByteString = 'Ech_noifst ReetalQuantile ' + img + ' 0.1 0.1 ' + Bytepath
-    subprocess.call(ByteString, shell=True)
+    Bytepath = os.path.join(work_dir, ByteName)
+    if not os.path.isfile(Bytepath):
+        ByteString = 'Ech_noifst ReetalQuantile ' + img + ' 0.1 0.1 ' + Bytepath
+        subprocess.call(ByteString, shell=True)
 
     if cir:
         print('CIR mode')
         CIRName = name + '_byteCIR.tif'
-        CIRpath = os.path.join(out_dir, CIRName)
-        CIRstring = 'gdal_translate -of GTIFF -b 4 -b 1 -b 2 ' + Bytepath + ' ' + CIRpath
-        subprocess.call(CIRstring, shell=True)
+        CIRpath = os.path.join(work_dir, CIRName)
+        if not os.path.isfile(CIRpath):
+            CIRstring = 'gdal_translate -of GTIFF -b 4 -b 1 -b 2 ' + Bytepath + ' ' + CIRpath
+            subprocess.call(CIRstring, shell=True)
         in_img = CIRpath
         PFFname = name + '_CIRseg.tif'
+        PFFname = 'cir_'+str(sigma)+'_'+str(k)+'_'+str(min_size)+'.tif'
     else:
         in_img = Bytepath
         PFFname = name + '_seg.tif'
+        #PFFname = 'rgb_'+str(sigma)+'_'+str(k)+'_'+str(min_size)+'.tif'
     # Segmentation
-    PFFpath = os.path.join(out_dir, PFFname)
+    PFFpath = os.path.join(work_dir, PFFname)
     PFFstring = 'SegmentationPFFst ' + str(sigma) + ' ' + str(k) + ' ' + str(min_size) + ' ' + in_img + ' ' + PFFpath
     subprocess.call(PFFstring, shell=True)
 
-
-# ~ img = 'tile_16500_38500.tif'
-# ~ PFF(img,cir=False)
 
 def PFF_scikit(img, scale=60, sigma=0.8, min_size=20):
     img = io.imread(img)
@@ -106,3 +107,40 @@ def PFF_scikit(img, scale=60, sigma=0.8, min_size=20):
     imsave('/media/tpostadjian/Data/These/Test/slic2label/tile_16500_38500_pff.png', seg)
     print("********************* Segmentation: %s seconds *******************" % (time.time() - start_time))
     return seg
+
+
+def str2seg(v):
+    if v.lower() in ('slic', 'SLIC'):
+        return 'slic'
+    elif v.lower() in ('pff', 'PFF'):
+        return 'pff'
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', help='input image')
+    parser.add_argument('-d', help='directory to store segmentation')
+    parser.add_argument('-b', help='mode: cir or rgb bands based segmentation')
+    parser.add_argument('-s', help='gaussian pre-smoothing parameter')
+    parser.add_argument('-k', help='scale of observation')
+    parser.add_argument('-m', help='min component size')
+    # parser.add_argument('-t', type=str2seg, nargs='?',
+    #                     const=True,
+    #                     help="Segmentation alg: - pff, PFF for Felzenszwalb segmentation \n - slic, SLIC for slic segmentation")
+    args = parser.parse_args()
+
+    input_img = args.i
+    out_dir = args.d
+    mode = args.b
+    sigma = args.s
+    scale = args.k
+    minsize = args.m
+
+    try:
+        os.makedirs(out_dir)
+    except OSError:
+        pass
+
+    PFF(input_img, out_dir, mode, sigma, scale, minsize)
