@@ -22,7 +22,7 @@ parser.add_argument('-d', help='results directory')
 parser.add_argument('-s', type=str2bool, nargs='?',
                     const=True, help='Segmentation flag.')
 parser.add_argument('-m', help='net architecture')
-parser.add_argument('-r', type=float, help='segmentation case: pixel density to classify - 1 is full prediction')
+parser.add_argument('-r', type=float, help='segmentation case: pixel density to classify --> 1 for all pixel predictions')
 args = parser.parse_args()
 
 
@@ -50,16 +50,16 @@ if tag:
         out_dir = work_dir + '/' + img_name
 
         # partial pixel prediction per segment
-        # prediction(work_dir, img, tag, model, ratio)
+        prediction(work_dir, img, tag, model, ratio)
 
         # majority decision
+        seg_img = out_dir + '/' + img_name + '_seg.tif'
         in_pred_pix = out_dir + "/" + img_name + "_pred_pix_" + str(int(ratio * 100)) + ".txt"
         out_pred_seg = out_dir + "/" + img_name + "_pred_seg_" + str(int(ratio * 100)) + ".txt"
         print("---- decision ----")
-        classDecision(in_pred_pix, out_pred_seg)
+        classDecision(in_pred_pix, out_pred_seg, seg_img)
 
         # classification image creation
-        seg_img = out_dir+'/'+img_name+'_seg.tif'
         out_img = out_dir+'/'+img_name+'_classif_'+str(int(ratio * 100))+'.tif'
         print("---- classif image ----")
         SSImg(out_pred_seg, seg_img, out_img)

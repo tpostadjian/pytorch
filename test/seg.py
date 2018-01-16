@@ -73,7 +73,7 @@ def PFF(img, work_dir, cir=False, sigma=0.8, k=30, min_size=20):
     else:
         in_img = Bytepath
         PFFname = name + '_seg.tif'
-        PFFname = 'rgb_'+str(sigma)+'_'+str(k)+'_'+str(min_size)+'.tif'
+        #PFFname = 'rgb_'+str(sigma)+'_'+str(k)+'_'+str(min_size)+'.tif'
     # Segmentation
     PFFpath = os.path.join(work_dir, PFFname)
     PFFstring = 'SegmentationPFFst ' + str(sigma) + ' ' + str(k) + ' ' + str(min_size) + ' ' + in_img + ' ' + PFFpath

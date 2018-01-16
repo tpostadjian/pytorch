@@ -33,7 +33,7 @@ def SSImg(seg_pred, seg_img, out_img, patchsize=65):
     count = 0
 
     for s in seg_inds:
-        if not (len(s[0]) == 0 or int(len(s[0])*0.4) == 0):
+        if not (len(s[0]) == 0 or int(len(s[0])*0.2) == 0):
             line = txt[count][1:6]
             label = line.argmax() + 1
             tmp[s[0], s[1]] = label
