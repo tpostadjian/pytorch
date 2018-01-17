@@ -52,7 +52,7 @@ def prediction(work_dir, img, seg_flag=False, model=None, ratio_pix2class=0.2,
         pass
 
     # conversion to hdf5
-    pythonString = "/usr/bin/python2.7 ../test/tif2h5.py " \
+    pythonString = "tif2h5.py " \
                    + img + " " \
                    + out_dir + "/" + img_name + ".h5"
     subprocess.call(pythonString, shell=True)
