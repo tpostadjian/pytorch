@@ -20,11 +20,10 @@ class Trainer():
 
     def runEpoch(self):
         iterator = self.dataset.trainGenerator(self.batchSize)
-        for img, cls in iterator:
+        for data, target in iterator:
             # forward
-            img = Variable(img).cuda()
-            cls = Variable(cls).long().cuda()
-            output = self.model.forward(img)
-            print(output, cls)
-            loss = self.criterion(output, cls)
+            data = Variable(data).cuda()
+            target = Variable(target).long().cuda()
+            output = self.model.forward(data)
+            loss = self.criterion(output, target)
             loss.backward()

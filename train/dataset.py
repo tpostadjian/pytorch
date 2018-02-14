@@ -11,7 +11,7 @@ def hdf5_reader(h5_file):
     imgBuffer = []
     img_count = 1
     eof = False
-    while eof == False:
+    while not eof:
         img_str = 'img_' + str(img_count)
         try:
             img = h5_ds[img_str]
@@ -52,6 +52,7 @@ class ImageDataset(data.Dataset):
     def batchGenerator(self, n, class_dic, dataset, batchsize=200):
 
         def getClassImg(idx, dic, dataset):
+            global cls, img
             for key, value in dic.items():
                 imin = value[1]
                 imax = value[2]
