@@ -28,16 +28,15 @@ args = parser.parse_args()
 list_shapefile = args.l
 classif = args.c
 raster = args.r
-outDir = args.o
+out_dir = args.o
 field = args.f
 splitting = args.s
 
 img_name = os.path.splitext(os.path.basename(raster))[0]
 classif_name = os.path.splitext(os.path.basename(classif))[0]
-mask_dir = outDir + '/masks/' + img_name
-valid_dir = outDir + '/cross_validation/' + classif_name
+mask_dir = out_dir + '/masks/' + img_name
+valid_dir = out_dir + '/cross_validation/' + classif_name
 
-print(classif_name)
 try:
     os.makedirs(mask_dir)
 except OSError:
@@ -53,10 +52,10 @@ for shp in list_shapefile:
     if os.path.isfile(mask_dir + '/gt.tif'):
         continue
     else:
-        output = rasterisation(shp, classif, splitting, field, outDir)
+        output = rasterisation(shp, classif, splitting, field, out_dir)
         shutil.move(output, mask_dir + '/' + cls_name + '.tif')
 #
-concat_str = "Legendest masques2label:sansconflit legende_for_concac_" + os.path.basename(outDir) + ".txt " + mask_dir + "/" + " " + mask_dir + "/gt.tif "
+concat_str = "Legendest masques2label:sansconflit legende_for_concac_" + os.path.basename(out_dir) + ".txt " + mask_dir + "/" + " " + mask_dir + "/gt.tif "
 subprocess.call(concat_str, shell=True)
 
 eval_str = "Evalst " + classif + " " + mask_dir + "/gt.tif " + valid_dir + "/bm.tif legende.txt " + valid_dir + "/mat2conf.txt --Kappa"
