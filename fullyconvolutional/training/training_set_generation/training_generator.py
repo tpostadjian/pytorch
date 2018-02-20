@@ -36,9 +36,9 @@ for t in tiles:
     for shp in shp_list:
         class_name = os.path.splitext(os.path.basename(shp))[0]
         shp_rasterized = mask_dir+'/'+class_name+'.tif'
-    #     raster_mask(shp, t, shp_rasterized)
+        raster_mask(shp, t, shp_rasterized)
     gtFuse_str = 'Legendest masques2label:sansconflit '+legend+' '+mask_dir+'/ '+gtFuse_dir+'/'+t_name+'.tif'
-    print(gtFuse_str)
-    # subprocess.call(gtFuse_str, shell=True)
+    #print(gtFuse_str)
+    subprocess.call(gtFuse_str, shell=True)
 
     DrawTrainingSample(t, gtFuse_dir+'/'+t_name+'.tif', t_name, int(n_train), 65, data_dir, label_dir)
