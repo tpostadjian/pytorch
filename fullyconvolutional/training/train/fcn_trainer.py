@@ -3,6 +3,7 @@ from torch.autograd import Variable
 from tqdm import tqdm
 import numpy as np
 
+
 class Trainer():
 
     def __init__(self, model, criterion, dataset, batchSize=200, mode='cuda'):
@@ -23,6 +24,7 @@ class Trainer():
     def runEpoch(self):
         for batch_idx, (data, target) in enumerate(self.dataset):
             data = Variable(data)
+            print(data.size())
             target = Variable(target)
             if self.mode == 'cuda':
                 data = data.cuda()
@@ -33,8 +35,10 @@ class Trainer():
             self.optimizer.step()
 
     def train(self, epochs):
-        losses = np.zeros(1000000)
+        losses = np.zeros(epochs)
+        mean_losses = np.zeros(epochs)
         it = 0
         for e in tqdm(range(1, epochs+1)):
             self.runEpoch()
             losses[it] = self.loss.data[0]
+            mean_losses[it] = np.mean(self.losses[max(0, it-100):it])

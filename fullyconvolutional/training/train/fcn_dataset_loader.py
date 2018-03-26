@@ -38,7 +38,7 @@ class SPOT_dataset(Dataset):
             # Data is normalized in [0, 1]
             data = gdal.Open(self.data_files[random_idx])
             data = data.ReadAsArray()
-            data = 1 / 255 * np.asarray(data, dtype='float32')
+            data = 1 / 2**16 * np.asarray(data, dtype='float32')
             if self.cache:
                 self.data_cache_[random_idx] = data
 
