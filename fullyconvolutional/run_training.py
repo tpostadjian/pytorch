@@ -9,8 +9,8 @@ import torch.nn as nn
 
 WINDOW_SIZE = (128, 128)
 STRIDE = 64
-TRAIN_RATIO = 0.8
-N_EPOCHS = 500
+TRAIN_RATIO = 0.1
+N_EPOCHS = 2
 CLASSES = ['Buildings', 'Roads', 'Vegetation', 'Crop', 'Water', 'Unknown']
 CLASSES_WEIGHT = torch.ones(len(CLASSES)).cuda()
 
@@ -34,4 +34,22 @@ trainer = Trainer(net, nn.CrossEntropyLoss(weight=CLASSES_WEIGHT, ignore_index=0
 tester = Tester(net, test_ids, data_dir, label_dir, WINDOW_SIZE, STRIDE)
 # training = trainer.train(N_EPOCHS)
 
-testing = tester.test(5)
+
+def train(epochs):
+    # losses = np.zeros(epochs)
+    # mean_losses = np.zeros(epochs)
+    it = 0
+    for e in range(1, epochs+1):
+        trainer.runEpoch()
+        # losses[it] = trainer.loss.data[0]
+        # mean_losses[it] = np.mean(losses[max(0, it-100):it])
+
+        print('Train Epoch: {} [Loss: {:.6f}]'.format(\
+            e, trainer.loss.data[0]))
+        if e % 1 == 0:
+            testing = tester.test(5)
+        it += 1
+
+    torch.save(net.state_dict(), './net')
+
+train(N_EPOCHS)

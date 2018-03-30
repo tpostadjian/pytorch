@@ -22,9 +22,8 @@ class Trainer():
         self.loss = 10000
 
     def runEpoch(self):
-        for batch_idx, (data, target) in enumerate(self.dataset):
+        for batch_idx, (data, target) in enumerate(tqdm(self.dataset)):
             data = Variable(data)
-            print(data.size())
             target = Variable(target)
             if self.mode == 'cuda':
                 data = data.cuda()
@@ -34,11 +33,11 @@ class Trainer():
             self.loss.backward()
             self.optimizer.step()
 
-    def train(self, epochs):
-        losses = np.zeros(epochs)
-        mean_losses = np.zeros(epochs)
-        it = 0
-        for e in tqdm(range(1, epochs+1)):
-            self.runEpoch()
-            losses[it] = self.loss.data[0]
-            mean_losses[it] = np.mean(self.losses[max(0, it-100):it])
+    # def train(self, epochs):
+    #     losses = np.zeros(epochs)
+    #     mean_losses = np.zeros(epochs)
+    #     it = 0
+    #     for e in tqdm(range(1, epochs+1)):
+    #         self.runEpoch()
+    #         losses[it] = self.loss.data[0]
+    #         mean_losses[it] = np.mean(losses[max(0, it-100):it])
