@@ -9,10 +9,12 @@ import torch.nn as nn
 
 WINDOW_SIZE = (128, 128)
 STRIDE = 64
-TRAIN_RATIO = 0.1
-N_EPOCHS = 2
-CLASSES = ['Buildings', 'Roads', 'Vegetation', 'Crop', 'Water', 'Unknown']
-CLASSES_WEIGHT = torch.ones(len(CLASSES)).cuda()
+TRAIN_RATIO = 0.8
+N_EPOCHS = 20
+CLASSES = ['Unknown', 'Buildings', 'Vegetation', 'Water', 'Crop', 'Roads']
+weights = [0, 0.9, 0.2, 0.4, 0.2, 1]
+# CLASSES_WEIGHT = torch.ones(len(CLASSES)).cuda()
+CLASSES_WEIGHT = torch.FloatTensor(weights).cuda()
 
 data_dir = '/media/tpostadjian/Data/These/Test/data/finistere1/tif/tile_{}.tif'
 label_dir = 'training/training_set_generation/label/tile_{}.tif'
@@ -26,13 +28,14 @@ test_ids = list(set(all_ids) - set(train_ids))
 print(len(train_ids))
 
 net = fcn(4, 6)
+print(net)
 
 train_dataset = SPOT_dataset(train_ids, data_dir, label_dir, WINDOW_SIZE, cache=True)
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=150)
-trainer = Trainer(net, nn.CrossEntropyLoss(weight=CLASSES_WEIGHT, ignore_index=0), train_loader)
+# trainer = Trainer(net, nn.CrossEntropyLoss(weight=CLASSES_WEIGHT, ignore_index=0), train_loader)
+trainer = Trainer(net, nn.NLLLoss2d(weight=CLASSES_WEIGHT, ignore_index=0), train_loader)
 
 tester = Tester(net, test_ids, data_dir, label_dir, WINDOW_SIZE, STRIDE)
-# training = trainer.train(N_EPOCHS)
 
 
 def train(epochs):

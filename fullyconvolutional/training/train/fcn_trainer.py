@@ -16,7 +16,7 @@ class Trainer():
         self.dataset = dataset
         # ~ self.batchSize = args.batchSize
         self.batchSize = batchSize
-        self.optimizer = optim.SGD(self.model.parameters(), lr=0.002)
+        self.optimizer = optim.SGD(self.model.parameters(), lr=0.01)
         # ~ self.params, self.gradParams = model.parameters()
         self.params = model.parameters()
         self.loss = 10000

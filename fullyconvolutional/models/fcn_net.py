@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 class fcn(nn.Module):
 
     def __init__(self, n_bands, n_classes):
@@ -72,6 +73,6 @@ class fcn(nn.Module):
             print("1st unpool : " + str(x.size()))
         x = F.relu(self.conv1up(x))
 
-        x = F.log_softmax(x, dim=1)
+        x = F.log_softmax(x, dim=0)
 
         return x

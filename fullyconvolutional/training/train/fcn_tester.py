@@ -144,24 +144,23 @@ class Tester():
                 del output
 
             pred = np.argmax(pred, axis=-1)
-            print(pred.shape)
-            print(target.shape)
+
             # Display the result
-            # if it % 25 == 0:
-            #     print(self.data_files[it])
-            #     fig = plt.figure()
-            #     fig.add_subplot(1, 3, 1)
-            #     plt.imshow(np.asarray(2**16 * data.transpose(1,0,2), dtype='uint8'))
-            #     fig.add_subplot(1, 3, 2)
-            #     plt.imshow(convert_to_color(pred).transpose(1,0,2))
-            #     fig.add_subplot(1, 3, 3)
-            #     plt.imshow(convert_to_color(target))
-            #     plt.show()
+            if it % 25 == 0:
+                print(self.data_files[it])
+                fig = plt.figure()
+                fig.add_subplot(1, 3, 1)
+                plt.imshow(np.asarray(2**16 * data.transpose(1,0,2), dtype='uint8'))
+                fig.add_subplot(1, 3, 2)
+                plt.imshow(convert_to_color(pred).transpose(1,0,2))
+                fig.add_subplot(1, 3, 3)
+                plt.imshow(convert_to_color(target))
+                plt.show()
 
             all_preds.append(pred)
             all_gts.append(target)
 
-            cls = ['Buildings', 'Roads', 'Vegetation', 'Crop', 'Water', 'Unknown']
+            cls = ['Unknown', 'Buildings', 'Vegetation', 'Water', 'Crop', 'Roads']
             metrics(pred.transpose(1,0).ravel(), target.ravel(), cls)
             accuracy = metrics(np.concatenate([p.ravel() for p in all_preds]),
                                np.concatenate([p.ravel() for p in all_gts]).ravel(), cls)

@@ -64,8 +64,13 @@ class SPOT_dataset(Dataset):
 
         # Get a random patch
         x1, x2, y1, y2 = get_random_pos(data, self.window_shape)
-        data_p = data[:, x1:x2, y1:y2]
-        label_p = label[x1:x2, y1:y2]
+        while data[0, x1:x2, y1:y2] or label[x1:x2, y1:y2] == np.zeros(self.window_shape):
+            data_p = data[:, x1:x2, y1:y2]
+            label_p = label[x1:x2, y1:y2]
+        # x1, x2, y1, y2 = get_random_pos(data, self.window_shape)
+        # data_p = data[:, x1:x2, y1:y2]
+        # label_p = label[x1:x2, y1:y2]
+
 
         # Return the torch.Tensor values
         return (torch.from_numpy(data_p),
