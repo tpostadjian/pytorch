@@ -5,6 +5,7 @@ import numpy as np
 import gdal
 import os
 import glob as glob
+import random
 
 
 def hdf5_reader(h5_file):
@@ -31,7 +32,7 @@ def hdf5_reader(h5_file):
 def tif_reader(dir):
     img_list = []
     img_count = 0
-    tif_list = glob.glob(dir+'/*.tif')
+    tif_list = glob.glob(dir + '/*.tif')
     for tif in tif_list:
         img = gdal.Open(tif)
         img = img.ReadAsArray()
@@ -75,15 +76,37 @@ class ImageDataset(data.Dataset):
             if imin <= idx < imax:
                 cls = value[0]
                 img = self.dataset[cls - 1][idx - imin]
+        if self.transform:
+            img = self.transform(img)
         return img, cls
 
     # ~ ------
+    @classmethod
+    def transform(cls, array, v_flip=True, h_flip=True):
+        """
+        arrays : zipped data to tranform
+        v_flip, h_flip : vertical & horizontal flip flags
+        :type v_flip:
+        """
+        will_v_flip, will_h_flip = False, False
+        if v_flip and random.random() < 0.5:
+            will_v_flip = True
+        if h_flip and random.random() < 0.5:
+            will_h_flip = True
+
+        im = np.copy(array)
+        if will_v_flip:
+            im = im[:, ::-1, :]
+        if will_h_flip:
+            im = im[:, :, ::-1]
+        return im
 
     def dataLoader(self, path, reader):
         """
         returns :
-        1) A dictionnary {path to each h5 file : [class, i_min, i_max]}
-        2) The total number of images in the dataset
+        1) The dataset (list): dataset[class][img_index]
+        2) A dictionnary {path to each class dir (tif format) or file (hdf5 format): [class, i_min, i_max]}
+        3) The total number of images in the dataset
         """
         class_dic = {}
         dataset = []

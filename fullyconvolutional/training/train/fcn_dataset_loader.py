@@ -65,13 +65,38 @@ class SPOT_dataset(Dataset):
         # Get a random patch
         x1, x2, y1, y2 = get_random_pos(data, self.window_shape)
         while data[0, x1:x2, y1:y2] or label[x1:x2, y1:y2] == np.zeros(self.window_shape):
+            x1, x2, y1, y2 = get_random_pos(data, self.window_shape)
             data_p = data[:, x1:x2, y1:y2]
             label_p = label[x1:x2, y1:y2]
-        # x1, x2, y1, y2 = get_random_pos(data, self.window_shape)
-        # data_p = data[:, x1:x2, y1:y2]
-        # label_p = label[x1:x2, y1:y2]
 
-
+        data_p, label_p = self.data_augmentation(True, True, data_p, label_p)
         # Return the torch.Tensor values
         return (torch.from_numpy(data_p),
                 torch.from_numpy(label_p))
+
+    @classmethod
+    def data_augmentation(cls, v_flip, h_flip, *arrays):
+        """
+        arrays : zipped data to tranform
+        v_flip, h_flip : vertical & horizontal flip flags
+        """
+        will_v_flip, will_h_flip = False, False
+        if v_flip and random.random()<0.5:
+            will_v_flip = True
+        if h_flip and random.random()<0.5:
+            will_h_flip = True
+
+        flip = []
+        for a in arrays:
+            if will_v_flip:
+                if len(a.shape) == 2:
+                    a = a[::-1, :]
+                else:
+                    a = a[:, ::-1, :]
+            if will_h_flip:
+                if len(a.shape) == 2:
+                    a = a[:, ::-1]
+                else:
+                    a = a[:, :, ::-1]
+            flip.append(a)
+        return tuple(flip)

@@ -165,9 +165,9 @@ class Tester():
             accuracy = metrics(np.concatenate([p.ravel() for p in all_preds]),
                                np.concatenate([p.ravel() for p in all_gts]).ravel(), cls)
 
+            it += 1
             if all:
                 return accuracy, all_preds, all_gts
             else:
                 return accuracy
-            it += 1
 
