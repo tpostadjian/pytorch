@@ -1,7 +1,7 @@
 from dataset import ImageDataset, hdf5_reader
 import torch.utils.data as data
 from net_builder import *
-from train import Trainer
+from trainer import Trainer
 import torch.nn as nn
 
 classes = ['bati', 'foret', 'route', 'culture', 'eau']
@@ -10,6 +10,7 @@ data_loader = data.DataLoader(dataset=dataset, batch_size=16, shuffle=True)
 
 net = Model(make_layers(cfg['4l'], batch_norm=True), 5)
 tr = Trainer(data_loader, net, nn.CrossEntropyLoss())
+
 
 def train(epochs):
     # losses = np.zeros(epochs)
@@ -20,10 +21,10 @@ def train(epochs):
         # losses[it] = trainer.loss.data[0]
         # mean_losses[it] = np.mean(losses[max(0, it-100):it])
 
-        print('Train Epoch: {} [Loss: {:.6f}]'.format( \
-                e, tr.loss.data[0]))
+        print('Train Epoch: {} [Loss: {:.6f}]'.format(e, tr.loss.item()))
         # if e % 1 == 0:
         #     testing = tr.test(5)
         it += 1
+
 
 train(10)

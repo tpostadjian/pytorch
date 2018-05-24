@@ -47,8 +47,7 @@ def train(epochs):
         # losses[it] = trainer.loss.data[0]
         # mean_losses[it] = np.mean(losses[max(0, it-100):it])
 
-        print('Train Epoch: {} [Loss: {:.6f}]'.format(\
-            e, trainer.loss.data[0]))
+        print('Train Epoch: {} [Loss: {:.6f}]'.format(e, trainer.loss.item()))
         if e % 1 == 0:
             testing = tester.test(5)
         it += 1
