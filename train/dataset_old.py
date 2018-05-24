@@ -45,7 +45,7 @@ def tif_reader(dir):
 
 class ImageDataset(data.Dataset):
     # ~ ------
-    def __init__(self, rootPath, trainRatio=1., reader='hdf5_reader', transform=None):
+    def __init__(self, rootPath, trainRatio=1., reader='hdf5_reader', transform=None, batchsize=16):
         """
         Args:
             rootPath (string): Path to the h5 files containing image dataset
@@ -61,24 +61,56 @@ class ImageDataset(data.Dataset):
         self.n_train = int(self.n_samples * trainRatio)
         self.n_valid = 1 - self.n_train
         self.transform = transform
+        self.batchsize = batchsize
 
     # ~ ------
 
-    def __len__(self):
-        return self.n_samples
+    # ~ ------
+    def batchGenerator(self, n, class_dic, dataset, batchsize):
 
-    def __getitem__(self, idx):
-        global cls, img
-        for key, value in self.class_dic.items():
-            imin = value[1]
-            imax = value[2]
-            if imin <= idx < imax:
-                cls = value[0]
-                img = self.dataset[cls - 1][idx - imin]
-        return img, cls
+        def getClassImg(idx, dic, dataset):
+            global cls, img
+            for key, value in dic.items():
+                imin = value[1]
+                imax = value[2]
+                if imin <= idx < imax:
+                    cls = value[0]
+                    img = dataset[cls - 1][idx - imin]
+            return cls, img
+
+        """
+        Used by both trainGenerator et validGenerator
+        """
+        shuffle = torch.randperm(n)
+        indBatch = shuffle.split(batchsize)
+
+        i = 0
+        if i <= len(indBatch):
+            currentBatch = indBatch[i]
+            imgBatch = []
+            clsBatch = []
+            l = len(currentBatch)  # current batch length
+            for j in range(l):
+                sample_ind = currentBatch[j]
+                cls, img = getClassImg(sample_ind, class_dic, dataset)
+                imgBatch.append(img)
+                clsBatch.append(cls)
+
+            X = torch.Tensor(l, 4, 65, 65)
+            Y = torch.Tensor(l)
+            for s in range(l):
+                X[s] = imgBatch[s]
+                Y[s] = clsBatch[s]
+            i += 1
+        yield X, Y
+        # ~ ------
+
+    def trainGenerator(self):
+        return self.batchGenerator(self.n_train, self.class_dic, self.dataset, self.batchsize)
 
     # ~ ------
 
+    # ~ ------
     def dataLoader(self, path, reader):
         """
         returns :
