@@ -2,7 +2,8 @@ import scipy.ndimage
 import numpy as np
 from scipy.misc import imsave
 import argparse
-import progressbar
+import tqdm
+# import progressbar
 
 
 def SPImg(pix_pred, out_img, patchsize=65):
@@ -12,15 +13,15 @@ def SPImg(pix_pred, out_img, patchsize=65):
 
     output = np.empty((nl, nc), dtype=int)
 
-    bar = progressbar.ProgressBar(maxval=(nl-2*offset)*(nc-2*offset)).start()
-    count = 1
-    for l in range(offset, nl-offset):
+    # bar = progressbar.ProgressBar(maxval=(nl-2*offset)*(nc-2*offset)).start()
+    # count = 1
+    for l in tqdm(range(offset, nl-offset)):
         for c in range(offset, nc-offset):
             line = txt[(l-offset) * (nc - 2*offset) + c-offset, :]
             label = line.argmax()
             output[l, c] = label + 1
-            bar.update(count)
-            count = count + 1
+            # bar.update(count)
+            # count = count + 1
 
     scipy.misc.toimage(output, cmin=0, cmax=255).save(out_img)
 

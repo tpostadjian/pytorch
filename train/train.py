@@ -1,28 +1,31 @@
 import torch.optim as optim
 from torch.autograd import Variable
-
+from tqdm import tqdm
 
 class Trainer():
 
-    def __init__(self, model, criterion, dataset, batchSize=200, mode='cuda'):
+    def __init__(self, data_loader, model, criterion, mode='cuda'):
         super(Trainer, self).__init__()
+        self.data_loader = data_loader
         self.model = model
-        if mode == 'cuda':
+        self.mode = mode
+        if self.mode == 'cuda':
             self.model = model.cuda()
         self.criterion = criterion
-        self.dataset = dataset
-        # ~ self.batchSize = args.batchSize
-        self.batchSize = batchSize
-        self.optimizer = optim.SGD
-        # ~ self.params, self.gradParams = model.parameters()
         self.params = model.parameters()
+        self.optimizer = optim.SGD(self.params, lr=0.01)
+        self.loss = 10000
 
     def runEpoch(self):
-        iterator = self.dataset.trainGenerator(self.batchSize)
-        for data, target in iterator:
+        for it, batch in enumerate(tqdm(self.data_loader)):
+            data, target = batch
+            data = Variable(data)
+            target = Variable(target)
             # forward
-            data = Variable(data).cuda()
-            target = Variable(target).long().cuda()
+            if self.mode == 'cuda':
+                data = data.cuda()
+                target = target.long().cuda()
             output = self.model.forward(data)
-            loss = self.criterion(output, target)
-            loss.backward()
+            self.loss = self.criterion(output.float(), target)
+            self.loss.backward()
+            self.optimizer.step()

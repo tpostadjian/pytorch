@@ -7,7 +7,8 @@ import time
 import os
 import h5py
 from skimage import io
-import progressbar
+# import progressbar
+import tqdm
 import argparse
 from scipy.sparse import csr_matrix
 
@@ -88,9 +89,9 @@ def prediction(work_dir, img, seg_flag=False, model=None, ratio_pix2class=0.2,
         seg_ind = get_indices_sparse(seg)
 
         print("----- classification is running ! -----")
-        bar = progressbar.ProgressBar(maxval=n_s.shape[0]).start()
-        count = 1
-        for id_seg in n_s:
+        # bar = progressbar.ProgressBar(maxval=n_s.shape[0]).start()
+        # count = 1
+        for id_seg in tqdm(n_s):
             # retrieve pixels indices for given segment
             n_pix_seg = seg_ind[id_seg][0].shape[0]
 
@@ -108,8 +109,8 @@ def prediction(work_dir, img, seg_flag=False, model=None, ratio_pix2class=0.2,
                 probas = preds.exp()
                 f.write("%d %.3f %.3f %.3f %.3f %.3f\n" % (
                     id_seg, probas[0, 0], probas[0, 1], probas[0, 2], probas[0, 3], probas[0, 4]))
-            bar.update(count)
-            count = count + 1
+            # bar.update(count)
+            # count = count + 1
         print("Classification took: %s seconds -----" % (time.time() - start_time))
 
     else:
@@ -119,9 +120,9 @@ def prediction(work_dir, img, seg_flag=False, model=None, ratio_pix2class=0.2,
         f = open(out_dir + "/" + img_name + "_pred_pix.txt", "w")
 
         print("----- classification is running ! -----")
-        bar = progressbar.ProgressBar(maxval=nl * nc).start()
-        count = 0
-        for l in range(nl):
+        # bar = progressbar.ProgressBar(maxval=nl * nc).start()
+        # count = 0
+        for l in tqdm(range(nl)):
             for c in range(nc):
                 x_pix = l + offset
                 y_pix = c + offset
@@ -130,8 +131,8 @@ def prediction(work_dir, img, seg_flag=False, model=None, ratio_pix2class=0.2,
                 probas = preds.exp()
                 f.write("%.3f %.3f %.3f %.3f %.3f\n" % (
                     probas[0, 0], probas[0, 1], probas[0, 2], probas[0, 3], probas[0, 4]))
-                bar.update(count)
-                count = count + 1
+                # bar.update(count)
+                # count = count + 1
         print("Classification took: %s seconds -----" % (time.time() - start_time))
         f.close()
 

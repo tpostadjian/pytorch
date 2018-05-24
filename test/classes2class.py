@@ -1,6 +1,5 @@
 import numpy as np
 import argparse
-import progressbar
 from scipy.sparse import csr_matrix
 import scipy.ndimage
 
