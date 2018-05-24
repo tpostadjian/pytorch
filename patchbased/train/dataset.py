@@ -29,38 +29,43 @@ def hdf5_reader(h5_file):
     return img_list, img_count
 
 
-def tif_reader(dir):
+def tif_reader(rep, ids):
     img_list = []
     img_count = 0
-    tif_list = glob.glob(dir + '/*.tif')
+    # get all images in current class training directory
+    tif_list = glob.glob(rep + '/*.tif')
+    tif_list = [os.path.basename(tif) for tif in tif_list]
+    # get only train (valid) samples with basename comparison
+    tif_list = list(set(tif_list) & set(ids))
+    # re-join path + train (valid) samples name for further processing
+    tif_list = [os.path.join(rep, tif) for tif in tif_list]
     for tif in tif_list:
-        img = gdal.Open(tif)
-        img = img.ReadAsArray()
-        img = np.asarray(img, dtype='int64')
-        img = torch.from_numpy(img)
-        img = img.float()
-        img_list.append(img)
-        img_count += 1
+            img = gdal.Open(tif)
+            img = img.ReadAsArray()
+            img = np.asarray(img, dtype='int64')
+            img = torch.from_numpy(img)
+            img = img.float()
+            img_list.append(img)
+            img_count += 1
     return img_list, img_count
 
 
 class ImageDataset(data.Dataset):
     # ~ ------
-    def __init__(self, rootPath, trainRatio=1., reader='hdf5_reader', transform=None):
+    def __init__(self, ids, rootPath, trainRatio=1., reader='hdf5_reader', transform=True):
         """
         Args:
-            rootPath (string): Path to the h5 files containing image dataset
-            trainRatio : used to further split between training/validating datasets
-            reader : Input file reader
+            ids : ids of training or valid samples
+            rootPath (string): Path to the image dataset
+            reader : Input file reader - hdf5_reader or tif_reader
             transform (callable, optional): Optional transform to be applied
                 on a sample.
         """
+        self.ids = ids
         self.rootPath = os.path.abspath(rootPath)
         self.reader = reader
         self.dataset, self.class_dic, self.n_samples = self.dataLoader(self.rootPath, self.reader)
         self.shuffle = torch.randperm(self.n_samples)
-        self.n_train = int(self.n_samples * trainRatio)
-        self.n_valid = 1 - self.n_train
         self.transform = transform
 
     # ~ ------
@@ -77,16 +82,15 @@ class ImageDataset(data.Dataset):
                 cls = value[0]
                 img = self.dataset[cls - 1][idx - imin]
         if self.transform:
-            img = self.transform(img)
+            img = self.data_augment(img)
         return img, cls
 
     # ~ ------
     @classmethod
-    def transform(cls, array, v_flip=True, h_flip=True):
+    def data_augment(cls, array, v_flip=True, h_flip=True):
         """
-        arrays : zipped data to tranform
+        array : data to tranform
         v_flip, h_flip : vertical & horizontal flip flags
-        :type v_flip:
         """
         will_v_flip, will_h_flip = False, False
         if v_flip and random.random() < 0.5:
@@ -99,7 +103,8 @@ class ImageDataset(data.Dataset):
             im = im[:, ::-1, :]
         if will_h_flip:
             im = im[:, :, ::-1]
-        return im
+        out = np.copy(im)
+        return out
 
     def dataLoader(self, path, reader):
         """
@@ -126,7 +131,8 @@ class ImageDataset(data.Dataset):
             list_subdir = os.listdir(path)
             # Number of iterations = number of classes
             for subdir in list_subdir:
-                data, n_img = tif_reader(os.path.join(path, subdir))
+                ids = self.ids[subdir][0]
+                data, n_img = tif_reader(os.path.join(path, subdir), ids)
                 class_dic[subdir] = [count, n_samples, n_samples + n_img]
                 dataset.append(data)
                 n_samples += n_img
