@@ -1,6 +1,4 @@
-import torch.optim as optim
 from torch.autograd import Variable
-from tqdm import tqdm
 import numpy as np
 from sklearn.metrics import confusion_matrix
 import gdal
@@ -9,26 +7,25 @@ import torch
 import matplotlib.pyplot as plt
 
 
-def convert_to_color(arr_2d):
-    """ Numeric labels to RGB-color encoding """
-    palette = {0: (0, 0 , 0),
+def convert_to_color(arr_greyscale):
+    palette = {0: (0, 0, 0),
                1: (255, 0, 0),      # Buildings (red)
                2: (0, 255, 0),      # Vegetation (green)
                3: (0, 0, 255),      # Water (Blue)
                4: (255, 255, 0),    # Crop (yellow)
                5: (100, 100, 100)}  # Road (Grey)
 
-    arr_3d = np.zeros((arr_2d.shape[0], arr_2d.shape[1], 3), dtype=np.uint8)
+    nc, nl = arr_greyscale.shape
+    arr_color = np.zeros((nc, nl, 3), dtype=np.uint8)
 
     for c, i in palette.items():
-        m = arr_2d == c
-        arr_3d[m] = i
+        b = arr_greyscale == c
+        arr_color[b] = i
 
-    return arr_3d
+    return arr_color
 
 
 def grouper(n, iterable):
-    """ Browse an iterator by chunk of n elements """
     it = iter(iterable)
     while True:
         chunk = tuple(itertools.islice(it, n))
@@ -79,7 +76,8 @@ def metrics(predictions, gts, label_values):
     print("Kappa: " + str(kappa))
     return accuracy
 
-class Tester():
+
+class Tester:
 
     def __init__(self, model, test_ids, data_img, label_img, window_size, stride, batchSize=200, mode='cuda'):
         super(Tester, self).__init__()
@@ -106,7 +104,6 @@ class Tester():
                 yield l, c, self.window_size[0], self.window_size[1]
 
     def count_sliding_window(self, img):
-        """ Count the number of windows in an image """
         count = 0
         for l in range(0, img.shape[0], self.stride):
             if l + self.window_size[0] > img.shape[0]:

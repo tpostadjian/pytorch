@@ -42,9 +42,7 @@ def tif_reader(rep, ids):
     for tif in tif_list:
             img = gdal.Open(tif)
             img = img.ReadAsArray()
-            img = np.asarray(img, dtype='int64')
-            img = torch.from_numpy(img)
-            img = img.float()
+            img = 1. / 255 * np.asarray(img, dtype='float32')
             img_list.append(img)
             img_count += 1
     return img_list, img_count
@@ -74,16 +72,18 @@ class ImageDataset(data.Dataset):
         return self.n_samples
 
     def __getitem__(self, idx):
-        global cls, img
+        global cls_name,cls, img
         for key, value in self.class_dic.items():
             imin = value[1]
             imax = value[2]
             if imin <= idx < imax:
+                cls_name = key
                 cls = value[0]
                 img = self.dataset[cls - 1][idx - imin]
         if self.transform:
             img = self.data_augment(img)
-        return img, cls
+        sample = {'class_name': cls_name, 'class_code': cls, 'image': torch.from_numpy(img)}
+        return sample
 
     # ~ ------
     @classmethod
@@ -116,7 +116,7 @@ class ImageDataset(data.Dataset):
         class_dic = {}
         dataset = []
         n_samples = 0
-        count = 0
+        count = 1
         if reader == 'hdf5_reader':
             # whole training set for 1 class --> 1 hdf5 file
             file_list = glob.glob(path + '/*.h5')
@@ -138,3 +138,4 @@ class ImageDataset(data.Dataset):
                 n_samples += n_img
                 count += 1
         return dataset, class_dic, n_samples
+

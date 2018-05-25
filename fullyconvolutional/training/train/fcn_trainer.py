@@ -1,7 +1,6 @@
 import torch.optim as optim
 from torch.autograd import Variable
 from tqdm import tqdm
-import numpy as np
 
 
 class Trainer():
@@ -25,7 +24,6 @@ class Trainer():
         for batch_idx, (data, target) in enumerate(tqdm(self.dataset)):
             data = Variable(data)
             target = Variable(target)
-            print(target.size())
             if self.mode == 'cuda':
                 data = data.cuda()
                 target = target.long().cuda()
