@@ -1,7 +1,7 @@
-from training.train.fcn_dataset_loader import SPOT_dataset
-from training.train.fcn_trainer import Trainer
-from training.train.fcn_tester import Tester
-from models.fcn_net import fcn
+from fullyconvolutional.training.train.fcn_dataset_loader import SPOT_dataset
+from fullyconvolutional.training.train.fcn_trainer import Trainer
+from fullyconvolutional.training.train.fcn_tester import Tester
+from fullyconvolutional.models.fcn_net import fcn
 from glob import glob as glob
 import random
 import torch

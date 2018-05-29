@@ -20,7 +20,7 @@ def metrics(predictions, gts, label_values):
     accuracy = sum([cm[x][x] for x in range(len(cm))])
     accuracy *= 100 / float(total)
     print("{} pixels processed".format(total))
-    print("Total accuracy : {}%".format(accuracy))
+    print("Total accuracy : {:.2f}%".format(accuracy))
 
     print("---")
 
@@ -34,7 +34,7 @@ def metrics(predictions, gts, label_values):
             pass
     print("F1Score :")
     for l_id, score in enumerate(F1Score):
-        print("{}: {}".format(label_values[l_id], score))
+        print("{}: {:.2f}".format(label_values[l_id], score))
 
     print("---")
 
@@ -43,27 +43,25 @@ def metrics(predictions, gts, label_values):
     pa = np.trace(cm) / float(total)
     pe = np.sum(np.sum(cm, axis=0) * np.sum(cm, axis=1)) / float(total * total)
     kappa = (pa - pe) / (1 - pe)
-    print("Kappa: " + str(kappa))
+    print("Kappa: {:.2f}".format(kappa))
     return accuracy
 
 
 class Tester:
 
-    def __init__(self, data_loader, model, mode='cuda'):
+    def __init__(self, data_loader, model, classes, mode='cuda'):
         super(Tester, self).__init__()
         self.model = model
         self.data_loader = data_loader
         self.mode = mode
-        if self.mode == 'cuda':
-            self.model = model.cuda()
+        self.classes = classes
         self.params = model.parameters()
 
-    def test(self, n_classes, acc_only=False):
+    def test(self, acc_only=False):
 
         all_preds = []
         all_gts = []
 
-        it = 0
         for _, batch in enumerate(tqdm(self.data_loader)):
             data = Variable(batch['image'])
             target = batch['class_code']
@@ -77,13 +75,12 @@ class Tester:
             all_preds.append(pred)
             all_gts.append(target)
 
-            class_name = list(set(batch['class_name']))
-            metrics(pred, target, class_name)
-            accuracy = metrics(np.concatenate([p for p in all_preds]),
-                               np.concatenate([p for p in all_gts]).ravel(), class_name)
+        #class_name = list(set(batch['class_name']))
+        # metrics(pred, target, self.classes)
+        accuracy = metrics(np.concatenate([p for p in all_preds]),\
+                           np.concatenate([p for p in all_gts]).ravel()-1, self.classes)
 
-            it += 1
-            if not acc_only:
-                return accuracy, all_preds, all_gts
-            else:
-                return accuracy
+        if not acc_only:
+            return accuracy, all_preds, all_gts
+        else:
+            return accuracy

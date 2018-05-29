@@ -1,5 +1,5 @@
-from pred4seg import prediction
-from classes2class import classDecision
+from patchbased.test.pred4seg import prediction
+from patchbased.test.classes2class import classDecision
 import argparse
 from glob import glob as glob
 import os
@@ -22,12 +22,11 @@ parser.add_argument('-d', help='results directory')
 parser.add_argument('-s', type=str2bool, nargs='?',
                     const=True, help='Segmentation flag.')
 parser.add_argument('-m', help='net architecture')
-parser.add_argument('-r', type=float, help='segmentation case: pixel density to classify --> 1 for all pixel predictions')
+parser.add_argument('-r', type=float,
+                    help='segmentation case: pixel density to classify --> 1 for all pixel predictions')
 args = parser.parse_args()
 
-
-# Pixelwise or Segmentwise
-tag = args.s
+tag = args.s  # pixel-wise or segment-wise
 model = args.m
 work_dir = args.d
 try:
@@ -35,11 +34,12 @@ try:
 except FileExistsError:
     pass
 img_dir = args.i
-list_img = glob(img_dir+'/*.tif')
+list_img = glob(img_dir + '/*.tif')
 
 # SSImg --> Semantic Segmentation Img
 if tag:
-    from seg2label import SSImg
+    from patchbased.test.seg2label import SSImg
+
     ratio = args.r
 
     for img in list_img:
@@ -60,21 +60,22 @@ if tag:
         classDecision(in_pred_pix, out_pred_seg, seg_img)
 
         # classification image creation
-        out_img = out_dir+'/'+img_name+'_classif_'+str(int(ratio * 100))+'.tif'
+        out_img = out_dir + '/' + img_name + '_classif_' + str(int(ratio * 100)) + '.tif'
         print("---- classif image ----")
         SSImg(out_pred_seg, seg_img, out_img)
         print("*******************************************")
 
         # geo-referencing
-        tfw_dir = out_dir+'/'+img_name+'_classif_'+str(int(ratio * 100))+'.tfw'
+        tfw_dir = out_dir + '/' + img_name + '_classif_' + str(int(ratio * 100)) + '.tfw'
         tfw_str = "listgeo -tfw " + img
         subprocess.call(tfw_str, shell=True)
-        shutil.move(img_dir+"/"+img_name+".tfw", tfw_dir)
+        shutil.move(img_dir + "/" + img_name + ".tfw", tfw_dir)
 
 
 # SPImg --> Semantic Pixel Img
 else:
-    from csv2label import SPImg
+    from patchbased.test.csv2label import SPImg
+
     for img in list_img:
         # print("*******************************************")
         print(img)
@@ -92,7 +93,7 @@ else:
         print("*******************************************")
 
         # geo-referencing
-        tfw_dir = out_dir+'/'+img_name+'_classif_pix.tfw'
+        tfw_dir = out_dir + '/' + img_name + '_classif_pix.tfw'
         tfw_str = "listgeo -tfw " + img
         subprocess.call(tfw_str, shell=True)
-        shutil.move(img_dir+"/"+img_name+".tfw", tfw_dir)
+        shutil.move(img_dir + "/" + img_name + ".tfw", tfw_dir)
