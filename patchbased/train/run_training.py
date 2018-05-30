@@ -1,3 +1,4 @@
+import torch
 import torch.optim as optim
 import torch.utils.data as data
 
@@ -11,16 +12,17 @@ from patchbased.train.trainer import Trainer
 # import matplotlib.pyplot as plt
 import os, time
 
-TRAIN_RATIO = 0.9
+TRAIN_RATIO = 0.0007
 CLASSES = ['bati', 'culture', 'eau', 'foret', 'route']
 TRAIN_DIR = 'E:/Tristan/Data/finistere/training_dataset_rescaled'
-LOSS_FILE = './results/losses.txt'
+LOSS_TRAIN_FILE = './results/train_losses.txt'
+ACC_TEST_FILE = './results/test_acc.txt'
 mode = 'CUDA'
 RESUME = False
 RESUME_STATE = 'results/model_best.pth'
 
 try:
-    os.makedirs(os.path.dirname(LOSS_FILE))
+    os.makedirs(os.path.dirname(LOSS_TRAIN_FILE))
 except OSError:
     pass
 
@@ -48,9 +50,9 @@ if mode == 'CUDA':
 # Loss function and optimizer definition
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(),
-                      lr=0.0000001,
+                      lr=0.001,
                       momentum=0.9,
-                      weight_decay=0.001)
+                      weight_decay=0.0005)
 best_acc = 0
 
 # Case where using pre-trained network
@@ -66,27 +68,28 @@ if RESUME:
         print("No pre-trained net found at '{}'".format(RESUME_STATE))
 
 
+print(net)
 tr = Trainer(train_loader, net, criterion, optimizer)
-te = Tester(test_loader, net, CLASSES)
+te = Tester(test_loader, net, criterion, CLASSES)
 
 
 def train(start_epochs, best_score):
     print('Initial best accuracy: {:.2f}'.format(best_score))
-    with open(LOSS_FILE, 'w') as f:
+    with open(LOSS_TRAIN_FILE, 'w') as f_train, open(ACC_TEST_FILE, 'w') as f_test:
         for e in range(1, start_epochs + 1):
 
             # Training
             net.train()
             tr.runEpoch()
-            f.write('{:.2f}\n'.format(tr.avg_loss))
+            f_train.write('{:.2f}\n'.format(tr.avg_loss))
             print('\nTrain Epoch: {} [Loss: {:.2f}]'.format(e+1, tr.avg_loss))
 
             # Evaluation
             net.eval()
-            te.test()
+            accuracy = te.test()
+            f_test.write('{:.2f}\n'.format(accuracy))
 
             # Save best_acc and current model state
-            accuracy = te.test(acc_only=True)
             is_best_acc = accuracy > best_score
             best_score = max(accuracy, best_score)
             state = {
@@ -108,7 +111,8 @@ def train(start_epochs, best_score):
             # img = img[:, :, 0:3]
             # plt.imshow(np.asarray(img, dtype='uint8'))
             # plt.show()
-    f.close()
+    f_train.close()
+    f_test.close()
 
 
 def save_state(state, is_best):
@@ -117,4 +121,4 @@ def save_state(state, is_best):
         torch.save(state, './results/model_best.pth')
 
 
-train(1, best_acc)
+train(100, best_acc)

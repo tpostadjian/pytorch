@@ -1,4 +1,3 @@
-import torch
 import torch.nn as nn
 import math
 
@@ -9,6 +8,7 @@ class Model(nn.Module):
         super(Model, self).__init__()
         self.features = features
         self.classifier = nn.Sequential(
+            nn.Dropout2d(p=0.5),
             nn.Linear(128 * 4 * 4, n_classes)
         )
         self._initialize_weights()

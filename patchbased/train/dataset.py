@@ -50,7 +50,7 @@ def tif_reader(rep, ids):
 
 class ImageDataset(data.Dataset):
     # ~ ------
-    def __init__(self, ids, rootPath, trainRatio=1., reader='hdf5_reader', transform=True):
+    def __init__(self, ids, rootPath, reader='hdf5_reader', transform=True):
         """
         Args:
             ids : ids of training or valid samples
@@ -72,14 +72,14 @@ class ImageDataset(data.Dataset):
         return self.n_samples
 
     def __getitem__(self, idx):
-        global cls_name,cls, img
+        global cls_name, cls, img
         for key, value in self.class_dic.items():
             imin = value[1]
             imax = value[2]
             if imin <= idx < imax:
                 cls_name = key
                 cls = value[0]
-                img = self.dataset[cls - 1][idx - imin]
+                img = self.dataset[cls][idx - imin]
         if self.transform:
             img = self.data_augment(img)
         sample = {'class_name': cls_name, 'class_code': cls, 'image': torch.from_numpy(img)}
@@ -116,7 +116,7 @@ class ImageDataset(data.Dataset):
         class_dic = {}
         dataset = []
         n_samples = 0
-        count = 1
+        count = 0
         if reader == 'hdf5_reader':
             # whole training set for 1 class --> 1 hdf5 file
             file_list = glob.glob(path + '/*.h5')
