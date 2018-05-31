@@ -10,12 +10,12 @@ def metrics(preds, targets, classes):
         targets,
         preds,
         range(len(classes)))
-    print("*******************")
+    print("***")
 
     print("Confusion matrix: ")
     print(confusion)
 
-    print("*******************")
+    print("***")
 
     # Overall accuracy
     total = sum(sum(confusion))
@@ -24,7 +24,16 @@ def metrics(preds, targets, classes):
     print("Evaluation on {} pixels: ".format(total))
     print("Overall accuracy: {:.2f}%".format(accuracy))
 
-    print("*******************")
+    print("***")
+
+    # Kappa
+    total = np.sum(confusion)
+    Pa = np.trace(confusion) / float(total)
+    Pe = np.sum(np.sum(confusion, axis=0) * np.sum(confusion, axis=1)) / float(total * total)
+    kappa = (Pa - Pe) / (1 - Pe)
+    print("Kappa: {:.2f}".format(kappa))
+
+    print("***")
 
     # F1-score / class
     F1Score = np.zeros(len(classes))
@@ -37,24 +46,13 @@ def metrics(preds, targets, classes):
     for cls, score in enumerate(F1Score):
         print("{}: {:.2f}".format(classes[cls], score))
 
-    print("*******************")
-
-    # Kappa
-    total = np.sum(confusion)
-    Pa = np.trace(confusion) / float(total)
-    Pe = np.sum(np.sum(confusion, axis=0) * np.sum(confusion, axis=1)) / float(total * total)
-    kappa = (Pa - Pe) / (1 - Pe)
-    print("Kappa: {:.2f}".format(kappa))
-
-    print("*******************")
+    print("***")
 
     # IoU = TP/(TP+FN+FP)
     iou = np.zeros(len(classes))
     for cls in range(len(classes)):
-        preds_inds = preds == cls
-        targets_inds = targets == cls
-        intersection = np.sum(preds_inds[targets_inds]*1)
-        union = np.sum(preds_inds*1) + np.sum(targets*1) - intersection
+        intersection = np.float(confusion[cls, cls])
+        union = np.sum(confusion[cls, :])+np.sum(confusion[:, cls])-intersection
         if union == 0:
             iou[cls] = np.nan  # no target / groundtruth for class cls
         else:
@@ -77,6 +75,7 @@ class Tester:
         self.mode = mode
         self.params = model.parameters()
         self.avg_loss = 10000
+        self.accuracy = 0
 
     def test(self):
 
@@ -102,6 +101,6 @@ class Tester:
             loss_list[it] = loss.item()
         self.avg_loss = np.mean(loss_list[np.nonzero(loss_list)])
 
-        accuracy = metrics(np.concatenate([p for p in all_preds]), np.concatenate([p for p in all_targets]), self.classes)
+        print("Validation loss: {:.2f}".format(self.avg_loss))
+        self.accuracy = metrics(np.concatenate([p for p in all_preds]), np.concatenate([p for p in all_targets]), self.classes)
 
-        return accuracy

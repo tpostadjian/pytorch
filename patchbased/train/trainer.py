@@ -18,16 +18,20 @@ class Trainer():
     def runEpoch(self):
         loss_list = np.zeros(100000)
         for it, batch in enumerate(tqdm(self.data_loader)):
-            self.optimizer.zero_grad()
             data = Variable(batch['image'])
             target = Variable(batch['class_code'])
+
             # forward
             if self.mode == 'cuda':
                 data = data.cuda()
                 target = target.long().cuda()
             output = self.model(data)
             loss = self.criterion(output.float(), target)
+
+            # backward
+            self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
+
             loss_list[it] = loss.item()
         self.avg_loss = np.mean(loss_list[np.nonzero(loss_list)])

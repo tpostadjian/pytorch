@@ -1,11 +1,14 @@
 import torch
-import gdal
+from torch.utils.serialization import load_lua
 from seg import PFF
+import subprocess
 import numpy as np
 import time
 import os
+import h5py
 from skimage import io
-from tqdm import tqdm
+# import progressbar
+import tqdm
 import argparse
 from scipy.sparse import csr_matrix
 
@@ -30,14 +33,15 @@ def get_indices_sparse(data):
     return [np.unravel_index(row.data, data.shape) for row in M]
 
 
-def prediction(work_dir, img, net, net_state, seg_flag=False, ratio_pix2class=0.2,
+# @profile
+def prediction(work_dir, img, model=None, seg_flag=False, ratio_pix2class=0.2,
                patch_size=65):
 
     offset = int(patch_size / 2)
-    state = torch.load(net_state)
-    net.load_state_dict(state['params'])
-    net.cuda()
-    net.eval()
+    net = load_lua(model)
+    net.modules[1].modules[0] = torch.legacy.nn.View(1, 2048)
+    net = net.cuda()
+
     tile = os.path.basename(img)
     img_name = tile.split('.')[0]
 
@@ -48,9 +52,16 @@ def prediction(work_dir, img, net, net_state, seg_flag=False, ratio_pix2class=0.
     except FileExistsError:
         pass
 
+    # conversion to hdf5
+    pythonString = "tif2h5.py " \
+                   + img + " " \
+                   + out_dir + "/" + img_name + ".h5"
+    subprocess.call(pythonString, shell=True)
+
     # hdf5 --> numpy --> torch float cuda
-    data = gdal.Open(img)
-    img_np = data.ReadAsArray()
+    data = h5py.File(out_dir + "/" + img_name + ".h5")
+    img_h5 = data["img_1"]
+    img_np = np.array(img_h5)
     img_torch = torch.from_numpy(img_np)
     img_cuda = img_torch.float().cuda()
 
@@ -78,6 +89,8 @@ def prediction(work_dir, img, net, net_state, seg_flag=False, ratio_pix2class=0.
         seg_ind = get_indices_sparse(seg)
 
         print("----- classification is running ! -----")
+        # bar = progressbar.ProgressBar(maxval=n_s.shape[0]).start()
+        # count = 1
         for id_seg in tqdm(n_s):
             # retrieve pixels indices for given segment
             n_pix_seg = seg_ind[id_seg][0].shape[0]
@@ -92,10 +105,12 @@ def prediction(work_dir, img, net, net_state, seg_flag=False, ratio_pix2class=0.
                 x_pix = ind_pix2class[0][pix] + offset
                 y_pix = ind_pix2class[1][pix] + offset
                 patch = img_cuda[:, x_pix - offset:x_pix + offset + 1, y_pix - offset:y_pix + offset + 1]
-                preds = net(patch)
+                preds = net.forward(patch)
                 probas = preds.exp()
                 f.write("%d %.3f %.3f %.3f %.3f %.3f\n" % (
                     id_seg, probas[0, 0], probas[0, 1], probas[0, 2], probas[0, 3], probas[0, 4]))
+            # bar.update(count)
+            # count = count + 1
         print("Classification took: %s seconds -----" % (time.time() - start_time))
 
     else:
@@ -105,16 +120,19 @@ def prediction(work_dir, img, net, net_state, seg_flag=False, ratio_pix2class=0.
         f = open(out_dir + "/" + img_name + "_pred_pix.txt", "w")
 
         print("----- classification is running ! -----")
+        # bar = progressbar.ProgressBar(maxval=nl * nc).start()
+        # count = 0
         for l in tqdm(range(nl)):
             for c in range(nc):
                 x_pix = l + offset
                 y_pix = c + offset
                 patch = img_cuda[:, x_pix - offset:x_pix + offset + 1, y_pix - offset:y_pix + offset + 1]
-                patch.unsqueeze_(0)  # net is expecting batch size as 1st dimension, here, we're passing one image only
-                preds = net(patch)
+                preds = net.forward(patch)
                 probas = preds.exp()
                 f.write("%.3f %.3f %.3f %.3f %.3f\n" % (
                     probas[0, 0], probas[0, 1], probas[0, 2], probas[0, 3], probas[0, 4]))
+                # bar.update(count)
+                # count = count + 1
         print("Classification took: %s seconds -----" % (time.time() - start_time))
         f.close()
 
@@ -127,4 +145,3 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     prediction(args.d, seg_flag=args.s)
-

@@ -2,7 +2,7 @@ import scipy.ndimage
 import numpy as np
 from scipy.misc import imsave
 import argparse
-import tqdm
+from tqdm import tqdm
 # import progressbar
 
 

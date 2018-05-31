@@ -1,11 +1,13 @@
-from patchbased.test.pred4seg import prediction
-from patchbased.test.classes2class import classDecision
+from net_builder import *
+from pred4seg import prediction
+from classes2class import classDecision
 import argparse
 from glob import glob as glob
 import os
 import subprocess
 import shutil
 
+import line_profiler
 
 def str2bool(v):
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
@@ -21,13 +23,15 @@ parser.add_argument('-i', help='input image directory')
 parser.add_argument('-d', help='results directory')
 parser.add_argument('-s', type=str2bool, nargs='?',
                     const=True, help='Segmentation flag.')
-parser.add_argument('-m', help='net architecture')
+parser.add_argument('-n', type=str, help='net state')
 parser.add_argument('-r', type=float,
                     help='segmentation case: pixel density to classify --> 1 for all pixel predictions')
 args = parser.parse_args()
 
 tag = args.s  # pixel-wise or segment-wise
-model = args.m
+net_state = args.n
+model = Model(make_layers(cfg['4l'], batch_norm=True), 5)
+
 work_dir = args.d
 try:
     os.mkdir(work_dir)
@@ -38,7 +42,7 @@ list_img = glob(img_dir + '/*.tif')
 
 # SSImg --> Semantic Segmentation Img
 if tag:
-    from patchbased.test.seg2label import SSImg
+    from seg2label import SSImg
 
     ratio = args.r
 
@@ -50,7 +54,7 @@ if tag:
         out_dir = work_dir + '/' + img_name
 
         # partial pixel prediction per segment
-        prediction(work_dir, img, tag, model, ratio)
+        prediction(work_dir, img, model, tag, ratio)
 
         # majority decision
         seg_img = out_dir + '/' + img_name + '_seg.tif'
@@ -74,9 +78,10 @@ if tag:
 
 # SPImg --> Semantic Pixel Img
 else:
-    from patchbased.test.csv2label import SPImg
+    from csv2label import SPImg
 
     for img in list_img:
+
         # print("*******************************************")
         print(img)
         tile = os.path.basename(img)
@@ -84,7 +89,7 @@ else:
         out_dir = work_dir + '/' + img_name
 
         # full pixel prediction
-        prediction(work_dir, img, tag, model)
+        prediction(work_dir, img, model, net_state, tag)
 
         # classification image creation
         preds = out_dir + "/" + img_name + "_pred_pix.txt"
