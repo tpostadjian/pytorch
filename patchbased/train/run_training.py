@@ -23,6 +23,7 @@ parser.add_argument('--epochs', type=int, default=150, help='number of epochs')
 parser.add_argument('--cuda', type=str, default='CUDA', help='for GPU computation')
 parser.add_argument('--resume', type=str, default='', help='path to existing state model for resuming training')
 parser.add_argument('--lr', type=float, default=0.01, help='learning rate')
+parser.add_argument('--optim', type=str, default='SGD', help='optimizer (SGD, ADAM)')
 parser.add_argument('--momentum', type=float, default=0.9, help='momentum')
 parser.add_argument('--weightdecay', type=float, default=1e-4, help='weight decay')
 args = parser.parse_args()
@@ -76,10 +77,15 @@ def main(args):
 
     # Loss function and optimizer definition
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(net.parameters(),
-                          lr=args.lr,
-                          momentum=args.momentum,
-                          weight_decay=args.weightdecay)
+    if args.optim == 'SGD':
+        optimizer = optim.SGD(net.parameters(),
+                              lr=args.lr,
+                              momentum=args.momentum,
+                              weight_decay=args.weightdecay)
+    elif args.optim == 'ADAM':
+        optimizer = optim.Adam(net.parameters(),
+                              lr=args.lr,
+                              weight_decay=args.weightdecay)
     start_epoch = 0
     best_acc = 0
 

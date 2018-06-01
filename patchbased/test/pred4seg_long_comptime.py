@@ -112,7 +112,10 @@ def prediction(work_dir, img, net, net_state, seg_flag=False, ratio_pix2class=0.
                 patch = img_cuda[:, x_pix - offset:x_pix + offset + 1, y_pix - offset:y_pix + offset + 1]
                 patch.unsqueeze_(0)  # net is expecting batch size as 1st dimension, here, we're passing one image only
                 preds = net(patch)
-                probas = preds.exp()
+                # preds = preds.data.cpu().numpy()
+                # print(preds)
+                probas = preds
+                # probas = preds.exp()
                 f.write("%.3f %.3f %.3f %.3f %.3f\n" % (
                     probas[0, 0], probas[0, 1], probas[0, 2], probas[0, 3], probas[0, 4]))
         print("Classification took: %s seconds -----" % (time.time() - start_time))

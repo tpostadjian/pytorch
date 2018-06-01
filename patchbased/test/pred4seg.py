@@ -1,14 +1,15 @@
 import torch
-import gdal
 from seg import PFF
 import numpy as np
 import time
 import os
-from skimage import io
 from tqdm import tqdm
 import argparse
+from SPOTDataset_test import SPOTDataset_test
 from scipy.sparse import csr_matrix
+from torch.autograd import Variable
 
+import torch.utils.data as data
 
 def str2bool(v):
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
@@ -33,7 +34,6 @@ def get_indices_sparse(data):
 def prediction(work_dir, img, net, net_state, seg_flag=False, ratio_pix2class=0.2,
                patch_size=65):
 
-    offset = int(patch_size / 2)
     state = torch.load(net_state)
     net.load_state_dict(state['params'])
     net.cuda()
@@ -48,75 +48,29 @@ def prediction(work_dir, img, net, net_state, seg_flag=False, ratio_pix2class=0.
     except FileExistsError:
         pass
 
-    # hdf5 --> numpy --> torch float cuda
-    data = gdal.Open(img)
-    img_np = data.ReadAsArray()
-    img_torch = torch.from_numpy(img_np)
-    img_cuda = img_torch.float().cuda()
+    spot = SPOTDataset_test(img, patch_size)
+    spot_loader = data.DataLoader(dataset=spot, batch_size=256, shuffle=False)
+    start_time = time.time()
 
-    # Handle edges
-    img_noEdge = img_np[0:3, offset:img_np.shape[1] - offset, offset:img_np.shape[2] - offset]
-    nb, nl, nc = img_noEdge.shape
+    # file to store class probabilities
+    f = open(out_dir + "/" + img_name + "_pred_pix.txt", "wb")
 
-    if seg_flag:
-        # image segmentation
-        if not os.path.isfile(out_dir + "/" + img_name + "_seg.tif"):
-            print('----- segmentation -----')
-            PFF(img, out_dir)
+    print("----- classification is running ! -----")
 
-        # how many segments ?
-        seg = io.imread(out_dir + "/" + img_name + "_seg.tif")
-        seg = seg[offset:img_np.shape[1] - offset, offset:img_np.shape[2] - offset]
-        n_s = np.unique(seg)
+    for _, batch in enumerate(tqdm(spot_loader)):
+        spot_batch = Variable(batch)
+        # forward
+        spot_batch = spot_batch.cuda()
+        output = net(spot_batch)
+        # output = output.exp()
+        output = output.data.cpu().numpy()
+        np.savetxt(f, output, fmt='%.3f %.3f %.3f %.3f %.3f')
+        # f.write("%.3f %.3f %.3f %.3f %.3f\n" % (
+        #     output[:, 0], output[:, 1], output[:, 2], output[:, 3], output[:, 4]))
 
-        # loop over segments (0.015s/segment)
-        start_time = time.time()
+    print("Classification took: %s seconds -----" % (time.time() - start_time))
 
-        # file to store class probabilities
-        f = open(out_dir + "/" + img_name + "_pred_pix_" + str(int(ratio_pix2class * 100)) + ".txt", "w")
-
-        seg_ind = get_indices_sparse(seg)
-
-        print("----- classification is running ! -----")
-        for id_seg in tqdm(n_s):
-            # retrieve pixels indices for given segment
-            n_pix_seg = seg_ind[id_seg][0].shape[0]
-
-            # randomly draw pixels within the current segment
-            n_pix2class = int(n_pix_seg * ratio_pix2class)
-            pix2class = np.random.randint(n_pix_seg, size=n_pix2class)
-            ind_pix2class = [seg_ind[id_seg][0][pix2class], seg_ind[id_seg][1][pix2class]]
-
-            # Classify each picked pixel
-            for pix in range(n_pix2class):
-                x_pix = ind_pix2class[0][pix] + offset
-                y_pix = ind_pix2class[1][pix] + offset
-                patch = img_cuda[:, x_pix - offset:x_pix + offset + 1, y_pix - offset:y_pix + offset + 1]
-                preds = net(patch)
-                probas = preds.exp()
-                f.write("%d %.3f %.3f %.3f %.3f %.3f\n" % (
-                    id_seg, probas[0, 0], probas[0, 1], probas[0, 2], probas[0, 3], probas[0, 4]))
-        print("Classification took: %s seconds -----" % (time.time() - start_time))
-
-    else:
-        start_time = time.time()
-
-        # file to store class probabilities
-        f = open(out_dir + "/" + img_name + "_pred_pix.txt", "w")
-
-        print("----- classification is running ! -----")
-        for l in tqdm(range(nl)):
-            for c in range(nc):
-                x_pix = l + offset
-                y_pix = c + offset
-                patch = img_cuda[:, x_pix - offset:x_pix + offset + 1, y_pix - offset:y_pix + offset + 1]
-                patch.unsqueeze_(0)  # net is expecting batch size as 1st dimension, here, we're passing one image only
-                preds = net(patch)
-                probas = preds.exp()
-                f.write("%.3f %.3f %.3f %.3f %.3f\n" % (
-                    probas[0, 0], probas[0, 1], probas[0, 2], probas[0, 3], probas[0, 4]))
-        print("Classification took: %s seconds -----" % (time.time() - start_time))
-        f.close()
+    f.close()
 
 
 if __name__ == '__main__':
