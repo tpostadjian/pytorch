@@ -13,14 +13,15 @@ from trainer import Trainer
 import os, time
 import argparse
 
-
 parser = argparse.ArgumentParser()
 parser.add_argument('data', type=str, help='path to dataset')
 parser.add_argument('--outdir', type=str, default='./results', help='path to saving directory')
 parser.add_argument('--ratio', type=float, default=0.9, help='train/validation ratio')
-parser.add_argument('--classes', nargs='+', default=['bati', 'culture', 'eau', 'foret', 'route'], help='list of input classes')
+parser.add_argument('--classes', nargs='+', default=['bati', 'culture', 'eau', 'foret', 'route'],
+                    help='list of input classes')
 parser.add_argument('--epochs', type=int, default=150, help='number of epochs')
 parser.add_argument('--cuda', type=str, default='CUDA', help='for GPU computation')
+parser.add_argument('--dropout', type=float, default=0.5, help='dropout rate')
 parser.add_argument('--resume', type=str, default='', help='path to existing state model for resuming training')
 parser.add_argument('--lr', type=float, default=0.01, help='learning rate')
 parser.add_argument('--optim', type=str, default='SGD', help='optimizer (SGD, ADAM)')
@@ -49,6 +50,9 @@ def main(args):
     mode = args.cuda
     RESUME = args.resume
 
+
+    RESNET = False
+
     try:
         os.makedirs(OUT_DIR)
     except OSError:
@@ -71,7 +75,15 @@ def main(args):
     print('Test set loaded: ' + str(n_test) + ' samples in %.2f sec' % c_time)
 
     # Net definition + cuda check
-    net = Model(make_layers(cfg['4l'], batch_norm=True), 5)
+    net = Model(make_layers(cfg['4l'], batch_norm=True), 5, args.dropout)
+
+    if RESNET:
+        import torchvision.models as models
+        resnet18 = models.resnet18(pretrained=False)
+        resnet18._modules['conv1'] = torch.nn.Conv2d(4, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        resnet18.fc = torch.nn.Linear(in_features=512, out_features=5, bias=True)
+        net = resnet18
+
     if mode == 'CUDA':
         net.cuda()
 
@@ -84,8 +96,10 @@ def main(args):
                               weight_decay=args.weightdecay)
     elif args.optim == 'ADAM':
         optimizer = optim.Adam(net.parameters(),
-                              lr=args.lr,
-                              weight_decay=args.weightdecay)
+                               lr=args.lr,
+                               weight_decay=args.weightdecay)
+    else:
+        print('Wrong optimizer definition')
     start_epoch = 0
     best_acc = 0
 
@@ -108,9 +122,9 @@ def main(args):
     te = Tester(test_loader, net, criterion, CLASSES)
 
     # Some training perfomances
-    LOSS_TRAIN_FILE = OUT_DIR+'/train_losses.txt'
-    LOSS_TEST_FILE = OUT_DIR+'/test_losses.txt'
-    ACC_TEST_FILE = OUT_DIR+'/test_acc.txt'
+    LOSS_TRAIN_FILE = OUT_DIR + '/train_losses.txt'
+    LOSS_TEST_FILE = OUT_DIR + '/test_losses.txt'
+    ACC_TEST_FILE = OUT_DIR + '/test_acc.txt'
 
     print('Initial best accuracy: {:.2f}'.format(best_acc))
     with open(LOSS_TRAIN_FILE, 'w') as f_trainloss, \
@@ -118,10 +132,9 @@ def main(args):
             open(ACC_TEST_FILE, 'w') as f_testacc:
 
         for e in range(start_epoch, EPOCHS):
-
             # Training
             print('\n----------------------------')
-            print('Epoch: {}'.format(e+1))
+            print('Epoch: {}'.format(e + 1))
             net.train()
             tr.runEpoch()
             f_trainloss.write('{:.2f}\n'.format(tr.avg_loss))
@@ -137,7 +150,7 @@ def main(args):
             is_best_acc = accuracy > best_acc
             best_score = max(accuracy, best_acc)
             state = {
-                'epoch': e+1,
+                'epoch': e + 1,
                 'best_acc': best_score,
                 'params': net.float().state_dict(),
                 'optimizer': tr.optimizer.state_dict()
@@ -161,8 +174,9 @@ def main(args):
 
 
 def save_state(state, is_best, out_dir):
-    torch.save(state, out_dir+'/model_state.pth')
+    torch.save(state, out_dir + '/model_state.pth')
     if is_best:
-        torch.save(state, out_dir+'/model_best.pth')
+        torch.save(state, out_dir + '/model_best.pth')
+
 
 main(args)

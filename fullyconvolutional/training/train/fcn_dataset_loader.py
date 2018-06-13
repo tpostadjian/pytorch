@@ -21,9 +21,9 @@ class SPOT_dataset(Dataset):
                 raise KeyError('{} : not a file '.format(f))
 
         # Initialize cache dicts
-        if self.cache:
-            self.data_cache_ = {}
-            self.label_cache_ = {}
+        # if self.cache:
+        self.data_cache_ = {}
+        self.label_cache_ = {}
 
     def __len__(self):
         return 10000
@@ -38,7 +38,7 @@ class SPOT_dataset(Dataset):
             # Data is normalized in [0, 1]
             data = gdal.Open(self.data_files[random_idx])
             data = data.ReadAsArray()
-            data = 1 / 2**16 * np.asarray(data, dtype='float32')
+            data = 1. / 255 * np.asarray(data, dtype='float32')
             if self.cache:
                 self.data_cache_[random_idx] = data
 
@@ -48,7 +48,7 @@ class SPOT_dataset(Dataset):
             # Labels are converted from RGB to their numeric values
             label = gdal.Open(self.label_files[random_idx])
             label = label.ReadAsArray()
-            label = np.asarray(label, dtype='int64')
+            label = np.asarray(label, dtype='int16')
             if self.cache:
                 self.label_cache_[random_idx] = label
 
@@ -62,17 +62,19 @@ class SPOT_dataset(Dataset):
             y2 = y1 + h
             return x1, x2, y1, y2
 
-        # Get a random patch
+        # Get a random patch while ensuring it contains actual data / groundtruth
+        # x1, x2, y1, y2 = get_random_pos(data, self.window_shape)
+        # data_p = data[:, x1:x2, y1:y2]
+        # label_p = label[x1:x2, y1:y2]
+        # while np.all(np.equal(data[0, x1:x2, y1:y2], np.zeros(self.window_shape))) or np.all(np.equal(label[x1:x2, y1:y2], np.zeros(self.window_shape))):
         x1, x2, y1, y2 = get_random_pos(data, self.window_shape)
-        while data[0, x1:x2, y1:y2] or label[x1:x2, y1:y2] == np.zeros(self.window_shape):
-            x1, x2, y1, y2 = get_random_pos(data, self.window_shape)
-            data_p = data[:, x1:x2, y1:y2]
-            label_p = label[x1:x2, y1:y2]
+        data_p = data[:, x1:x2, y1:y2]
+        label_p = label[x1:x2, y1:y2]
 
         data_p, label_p = self.data_augmentation(True, True, data_p, label_p)
         # Return the torch.Tensor values
-        return (torch.from_numpy(data_p),
-                torch.from_numpy(label_p))
+        return (torch.from_numpy(np.flip(data_p, axis=0).copy()),
+                torch.from_numpy(np.flip(label_p, axis=0).copy()))
 
     @classmethod
     def data_augmentation(cls, v_flip, h_flip, *arrays):
@@ -81,9 +83,9 @@ class SPOT_dataset(Dataset):
         v_flip, h_flip : vertical & horizontal flip flags
         """
         will_v_flip, will_h_flip = False, False
-        if v_flip and random.random()<0.5:
+        if v_flip and random.random() < 0.5:
             will_v_flip = True
-        if h_flip and random.random()<0.5:
+        if h_flip and random.random() < 0.5:
             will_h_flip = True
 
         flip = []
@@ -99,4 +101,5 @@ class SPOT_dataset(Dataset):
                 else:
                     a = a[:, :, ::-1]
             flip.append(a)
+
         return tuple(flip)

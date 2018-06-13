@@ -4,22 +4,21 @@ import math
 
 class Model(nn.Module):
 
-    def __init__(self, features, n_classes):
+    def __init__(self, features, n_classes, dropout=0.5):
         super(Model, self).__init__()
         self.features = features
         self.classifier = nn.Sequential(
-            nn.Dropout2d(p=0.5),
+            nn.Dropout2d(p=dropout),
             nn.Linear(128 * 4 * 4, n_classes)
         )
         self._initialize_weights()
 
     def forward(self, x):
-
         ## show output size at each layer
-        # ~ for i in range(12):
-        # ~ x = self.features[i](x)
-        # ~ print(x.size())
-        # ~ print(self.features[0])
+        # for i in range(12):
+        #     x = self.features[i](x)
+        #     print(x.size())
+        #     print(self.features[0])
         x = self.features(x)
         x = x.view(x.size(0), -1)
         x = self.classifier(x)

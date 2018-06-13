@@ -4,11 +4,11 @@ import math
 
 class Model(nn.Module):
 
-    def __init__(self, features, n_classes):
+    def __init__(self, features, n_classes, dropout=0.5):
         super(Model, self).__init__()
         self.features = features
         self.classifier = nn.Sequential(
-            nn.Dropout2d(p=0.5),
+            nn.Dropout2d(p=dropout),
             nn.Linear(128 * 4 * 4, n_classes)
         )
         self._initialize_weights()
@@ -16,7 +16,6 @@ class Model(nn.Module):
     def forward(self, x):
         ## show output size at each layer
         # for i in range(12):
-        #     print(i)
         #     x = self.features[i](x)
         #     print(x.size())
         #     print(self.features[0])

@@ -73,6 +73,6 @@ class fcn(nn.Module):
             print("1st unpool : " + str(x.size()))
         x = F.relu(self.conv1up(x))
 
-        x = F.log_softmax(x, dim=0)
+        # x = F.log_softmax(x, dim=0)
 
         return x
