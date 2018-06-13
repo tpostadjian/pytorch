@@ -5,8 +5,8 @@ import argparse
 import os
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-d", type=str, help="Raster/tile directory (tif format)", required=True)
 parser.add_argument("-i", nargs='+', help="Input shapefile list", required=True)
+parser.add_argument("-d", type=str, help="Raster/tile directory (tif format)", required=True)
 parser.add_argument("-p", type=int, help="Input patch size", required=True)
 parser.add_argument("-f", type=str, help="field to filter", required=True)
 parser.add_argument("-o", type=str, help="Output directory", required=True)
@@ -14,8 +14,8 @@ parser.add_argument("-t", type=int, help="Number of training samples per tile", 
 parser.add_argument("m", action='store_false', help="Split classes within same shapefile or consider whole shapefile as a unique class")
 args = parser.parse_args()
 
-raster_dir = args.d
 shp_list = args.i
+raster_dir = args.d
 size = args.p
 field = args.f
 out_dir = args.o
