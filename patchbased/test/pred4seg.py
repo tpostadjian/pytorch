@@ -11,6 +11,7 @@ from torch.autograd import Variable
 
 import torch.utils.data as data
 
+
 def str2bool(v):
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
         return True
