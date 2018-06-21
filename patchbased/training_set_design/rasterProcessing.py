@@ -31,7 +31,7 @@ def array2raster(srcImg, newRaster, listOfArrays, reductionBounds=False, trainin
     geoTransform = ds_raster.GetGeoTransform()
     proj = ds_raster.GetProjection()
 
-    if reductionBounds == True:
+    if reductionBounds:
         driver = gdal.GetDriverByName('GTiff')
         cols = ds_raster.RasterXSize - patch_size
         rows = ds_raster.RasterYSize - patch_size
@@ -44,7 +44,7 @@ def array2raster(srcImg, newRaster, listOfArrays, reductionBounds=False, trainin
             geoTransform[4], \
             geoTransform[5]))
 
-    elif trainingSelection == True:
+    elif trainingSelection:
         driver = gdal.GetDriverByName('GTiff')
         cols = patch_size
         rows = patch_size

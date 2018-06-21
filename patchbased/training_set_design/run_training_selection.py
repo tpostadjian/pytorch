@@ -23,7 +23,7 @@ def training_selection(shapefile, base_raster, patch_size, field, n_training, sp
     except OSError:
         pass
 
-    if splitting == True:
+    if splitting:
 
         print("Splitting mode")
 
@@ -58,7 +58,7 @@ def training_selection(shapefile, base_raster, patch_size, field, n_training, sp
                                temp_dir + base_name + "/" + base_name + "_noDataCorrected.tif")
 
             DrawSampleTraining(base_raster, temp_dir + base_name + "/" + base_name + "_rasterfinal.tif", \
-                               fieldValues[i], n_training, patch_size)
+                               fieldValues[i], n_training, patch_size, temp_dir, training_dir)
 
             print(fieldValues[i] + " : Processing Done")
 
@@ -86,15 +86,24 @@ def training_selection(shapefile, base_raster, patch_size, field, n_training, sp
 
 
 if __name__ == '__main__':
+
+    def str2bool(v):
+        if v.lower() in ('yes', 'true', 't', 'y', '1'):
+            return True
+        elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+            return False
+        else:
+            raise argparse.ArgumentTypeError('Boolean value expected.')
+
     parser = argparse.ArgumentParser()
-    parser.add_argument("v", type=str, help="Input shapefile")
-    parser.add_argument("r", type=str, help="Input raster")
-    parser.add_argument("o", type=str, help="Output directory")
-    parser.add_argument("s", type=int, help="Size of net inputs (patch)")
-    parser.add_argument("f", type=str, help="Field to filter")
-    parser.add_argument("n", type=int, help="Number of training patches")
-    parser.add_argument("m", action='store_false',
-                        help="Split classes within same shapefile or consider whole shapefile as a unique class")
+    parser.add_argument("-i", nargs='+', help="Input shapefile", required=True)
+    parser.add_argument("-d", type=str, help="Raster (tif format)", required=True)
+    parser.add_argument("-p", type=int, help="Input patch size", required=True)
+    parser.add_argument("-f", type=str, help="field to filter", required=True)
+    parser.add_argument("-o", type=str, help="Output directory", required=True)
+    parser.add_argument("-t", type=int, help="Number of training samples", required=True)
+    parser.add_argument('-m', type=str2bool, nargs='?',
+                        const=False, help='Split classes within same shapefile or consider whole shapefile as a unique class.')
     args = parser.parse_args()
 
-    training_selection(args.v, args.r, args.s, args.f, args.n, args.m, args.o)
+    training_selection(args.i, args.d, args.p, args.f, args.t, args.m, args.o)

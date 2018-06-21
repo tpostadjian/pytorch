@@ -50,7 +50,6 @@ def main(args):
     mode = args.cuda
     RESUME = args.resume
 
-
     RESNET = False
 
     try:
@@ -127,9 +126,9 @@ def main(args):
     ACC_TEST_FILE = OUT_DIR + '/test_acc.txt'
 
     print('Initial best accuracy: {:.2f}'.format(best_acc))
-    with open(LOSS_TRAIN_FILE, 'w') as f_trainloss, \
-            open(LOSS_TEST_FILE, 'w') as f_testloss, \
-            open(ACC_TEST_FILE, 'w') as f_testacc:
+    with open(LOSS_TRAIN_FILE, 'a') as f_trainloss, \
+            open(LOSS_TEST_FILE, 'a') as f_testloss, \
+            open(ACC_TEST_FILE, 'a') as f_testacc:
 
         for e in range(start_epoch, EPOCHS):
             # Training

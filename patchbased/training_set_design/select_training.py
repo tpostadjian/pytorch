@@ -42,6 +42,7 @@ def DrawSampleTraining(base_raster, path2binaryRaster, base_name, n_training, pa
 
     # Number of pixels belonging to class "A"
     n_pix = np.count_nonzero(ds_bin_arr == 255)
+    print('so far so good')
     if n_pix > n_training * 10:
 
         # Stride to pick a training sample
@@ -61,3 +62,5 @@ def DrawSampleTraining(base_raster, path2binaryRaster, base_name, n_training, pa
         for k in range(0, n_training):
             out_crop = training_dir + base_name + "/training_" + base_name + "_" + str(k + 1) + ".tif"
             cropAroundPixel(base_raster, out_crop, pix_training[0][k], pix_training[1][k], patch_size)
+    else:
+        print('too few candidate training pixels')
