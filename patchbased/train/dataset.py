@@ -85,26 +85,45 @@ class ImageDataset(data.Dataset):
         sample = {'class_name': cls_name, 'class_code': cls, 'image': torch.from_numpy(img)}
         return sample
 
-    # ~ ------
-    # @classmethod
-    # def data_augment(cls, array, v_flip=True, h_flip=True):
-    #     """
-    #     array : data to tranform
-    #     v_flip, h_flip : vertical & horizontal flip flags
-    #     """
-    #     will_v_flip, will_h_flip = False, False
-    #     if v_flip and random.random() < 0.5:
-    #         will_v_flip = True
-    #     if h_flip and random.random() < 0.5:
-    #         will_h_flip = True
+    # def __getitem__(self, idx):
+    #     global cls_name, cls, img
+    #     for key, value in self.class_dic.items():
+    #         imin = value[1]
+    #         imax = value[2]
+    #         if imin <= idx < imax:
+    #             cls_name = key
+    #             cls = value[0]
+    #             img = self.dataset[cls][idx - imin]
     #
-    #     im = np.copy(array)
-    #     if will_v_flip:
-    #         im = im[:, ::-1, :]
-    #     if will_h_flip:
-    #         im = im[:, :, ::-1]
-    #     out = np.copy(im)
-    #     return out
+    #     sample = {'class_name': cls_name, 'class_code': cls, 'image': img}
+    #
+    #     if self.transform:
+    #         sample = self.transform(sample)
+    #
+    #     cls_name, cls, img = sample['class_name'], sample['class_code'], sample['image']
+    #     sample = {'class_name': cls_name, 'class_code': cls, 'image': torch.from_numpy(np.flip(img, axis=0).copy())}
+    #
+    #     return sample
+    # ~ ------
+    @classmethod
+    def data_augment(cls, array, v_flip=True, h_flip=True):
+        """
+        array : data to tranform
+        v_flip, h_flip : vertical & horizontal flip flags
+        """
+        will_v_flip, will_h_flip = False, False
+        if v_flip and random.random() < 0.5:
+            will_v_flip = True
+        if h_flip and random.random() < 0.5:
+            will_h_flip = True
+
+        im = np.copy(array)
+        if will_v_flip:
+            im = im[:, ::-1, :]
+        if will_h_flip:
+            im = im[:, :, ::-1]
+        out = np.copy(im)
+        return out
 
     def dataLoader(self, path, reader):
         """

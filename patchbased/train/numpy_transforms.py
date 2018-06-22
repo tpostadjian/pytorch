@@ -1,6 +1,7 @@
-import numpy as np
 import numbers
 import random
+import torch
+import numpy as np
 
 
 class CenterCrop:
@@ -12,8 +13,9 @@ class CenterCrop:
             self.size = size
 
     def __call__(self, sample):
+        cls_name, cls, img = sample['class_name'], sample['class_code'], sample['image']
         img = sample['image']
-        print(img)
+
         h, w = img.shape[1:]
         th, tw = self.size
         if w == tw and h == th:
@@ -22,7 +24,9 @@ class CenterCrop:
         x1 = int(round(w - tw) / 2.)
         y1 = int(round(h - th) / 2.)
         img = img[:, x1:x1+tw, y1:y1+th]
-        sample['image'] = img
+
+        sample = {'class_name': cls_name, 'class_code': cls, 'image': img}
+
         return sample
 
 
@@ -31,10 +35,12 @@ class RandomHorizontalFlip:
         self.p = p
 
     def __call__(self, sample):
+        cls_name, cls, img = sample['class_name'], sample['class_code'], sample['image']
         if random.random() < self.p:
-            img = sample['image']
+            return sample
+        else:
             img = img[:, ::-1, :]
-            sample['image'] = img
+            sample = {'class_name': cls_name, 'class_code': cls, 'image': img}
             return sample
 
 
@@ -43,9 +49,18 @@ class RandomVerticalFlip:
         self.p = p
 
     def __call__(self, sample):
+        cls_name, cls, img = sample['class_name'], sample['class_code'], sample['image']
         if random.random() < self.p:
-            img = sample['image']
+            return sample
+        else:
             img = img[:, :, ::-1]
-            sample['image'] = img
+            sample = {'class_name': cls_name, 'class_code': cls, 'image': img}
             return sample
 
+
+class ToTorchTensor:
+    def __call__(self, sample):
+        cls_name, cls, img = sample['class_name'], sample['class_code'], sample['image']
+        print(img.shape)
+        sample = {'class_name': cls_name, 'class_code': cls, 'image': torch.from_numpy(np.flip(img, axis=0).copy())}
+        return sample
