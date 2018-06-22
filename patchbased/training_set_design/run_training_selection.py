@@ -55,7 +55,7 @@ def training_selection(shapefile, base_raster, patch_size, field, n_training, sp
                         temp_dir + base_name + "/" + base_name, splitting)
 
             eliminateNoDataPix(base_raster, temp_dir + base_name + "/" + base_name + "_rasterized.tif", \
-                               temp_dir + base_name + "/" + base_name + "_noDataCorrected.tif")
+                               temp_dir + base_name + "/" + base_name + "_rasterfinal.tif")
 
             DrawSampleTraining(base_raster, temp_dir + base_name + "/" + base_name + "_rasterfinal.tif", \
                                fieldValues[i], n_training, patch_size, temp_dir, training_dir)

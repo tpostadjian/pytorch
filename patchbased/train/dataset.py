@@ -86,25 +86,25 @@ class ImageDataset(data.Dataset):
         return sample
 
     # ~ ------
-    @classmethod
-    def data_augment(cls, array, v_flip=True, h_flip=True):
-        """
-        array : data to tranform
-        v_flip, h_flip : vertical & horizontal flip flags
-        """
-        will_v_flip, will_h_flip = False, False
-        if v_flip and random.random() < 0.5:
-            will_v_flip = True
-        if h_flip and random.random() < 0.5:
-            will_h_flip = True
-
-        im = np.copy(array)
-        if will_v_flip:
-            im = im[:, ::-1, :]
-        if will_h_flip:
-            im = im[:, :, ::-1]
-        out = np.copy(im)
-        return out
+    # @classmethod
+    # def data_augment(cls, array, v_flip=True, h_flip=True):
+    #     """
+    #     array : data to tranform
+    #     v_flip, h_flip : vertical & horizontal flip flags
+    #     """
+    #     will_v_flip, will_h_flip = False, False
+    #     if v_flip and random.random() < 0.5:
+    #         will_v_flip = True
+    #     if h_flip and random.random() < 0.5:
+    #         will_h_flip = True
+    #
+    #     im = np.copy(array)
+    #     if will_v_flip:
+    #         im = im[:, ::-1, :]
+    #     if will_h_flip:
+    #         im = im[:, :, ::-1]
+    #     out = np.copy(im)
+    #     return out
 
     def dataLoader(self, path, reader):
         """
