@@ -115,7 +115,7 @@ def main(args):
         net = resnet18
 
     if mode == 'CUDA':
-        net.cuda()
+        net.cuda(0)
 
     # Loss function and optimizer definition
     criterion = nn.CrossEntropyLoss()

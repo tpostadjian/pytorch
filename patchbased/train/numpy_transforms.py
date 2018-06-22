@@ -61,6 +61,6 @@ class RandomVerticalFlip:
 class ToTorchTensor:
     def __call__(self, sample):
         cls_name, cls, img = sample['class_name'], sample['class_code'], sample['image']
-        print(img.shape)
+        # print(img.shape)
         sample = {'class_name': cls_name, 'class_code': cls, 'image': torch.from_numpy(np.flip(img, axis=0).copy())}
         return sample
