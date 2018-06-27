@@ -20,12 +20,10 @@ class Trainer():
         for it, batch in enumerate(tqdm(self.data_loader)):
             data = Variable(batch['image'])
             target = Variable(batch['class_code'])
-            print(type(data))
             # forward
             if self.mode == 'cuda':
-                data = data.cuda(0)
-                target = target.long().cuda(0)
-            print(type(data))
+                data = data.cuda()
+                target = target.long().cuda()
             output = self.model(data)
             loss = self.criterion(output.float(), target)
 

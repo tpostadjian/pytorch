@@ -33,20 +33,10 @@ args = parser.parse_args()
 
 
 def main(args):
-    TRAIN_RATIO = 0.007
-    # CLASSES = ['bati', 'culture', 'eau', 'foret', 'route']
-    # TRAIN_DIR = 'E:/Tristan/Data/finistere/training_dataset_rescaled'
-    # EPOCHS = 100
-    # DIR_PERF = './zero_grad'
-    # LOSS_TRAIN_FILE = DIR_PERF+'/train_losses.txt'
-    # LOSS_TEST_FILE = DIR_PERF+'/test_losses.txt'
-    # ACC_TEST_FILE = DIR_PERF+'/test_acc.txt'
-    # mode = 'CUDA'
-    # RESUME = False
-    # RESUME_STATE = DIR_PERF+'/model_best.pth'
+
     TRAIN_DIR = args.data
     OUT_DIR = args.outdir
-    # TRAIN_RATIO = args.ratio
+    TRAIN_RATIO = args.ratio
     CLASSES = args.classes
     EPOCHS = args.epochs
     mode = args.cuda
@@ -65,17 +55,15 @@ def main(args):
     crop = np_trsfrms.CenterCrop(65)
     hflip = np_trsfrms.RandomHorizontalFlip()
     vflip = np_trsfrms.RandomVerticalFlip()
-    totensor = np_trsfrms.ToTorchTensor()
     trsfrms = transforms.Compose([
         transforms.Lambda(lambda img: crop(img)),
         transforms.Lambda(lambda img: hflip(img)),
         transforms.Lambda(lambda img: vflip(img))
-        #transforms.Lambda(lambda img: totensor(img))
     ])
 
     # Loading training dataset
     start = time.clock()
-    train_dataset = ImageDataset(train_ids, TRAIN_DIR, reader='tif_reader', transform=True)
+    train_dataset = ImageDataset(train_ids, TRAIN_DIR, transform=trsfrms, reader='tif_reader')
 
     # Visualization of transforms
     # sample = train_dataset[0]
