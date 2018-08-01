@@ -1,15 +1,17 @@
+import torchvision.transforms as transforms
 import torch
 import torch.optim as optim
 import torch.utils.data as data
 
+import numpy_transforms as np_trsfrms
 from dataset import ImageDataset
 from net_builder import *
 from tester import Tester
 from train_valid_split import split_dataset
 from trainer import Trainer
 
-# import numpy as np
-# import matplotlib.pyplot as plt
+import numpy as np
+import matplotlib.pyplot as plt
 import os, time
 import argparse
 
@@ -31,17 +33,7 @@ args = parser.parse_args()
 
 
 def main(args):
-    # TRAIN_RATIO = 0.007
-    # CLASSES = ['bati', 'culture', 'eau', 'foret', 'route']
-    # TRAIN_DIR = 'E:/Tristan/Data/finistere/training_dataset_rescaled'
-    # EPOCHS = 100
-    # DIR_PERF = './zero_grad'
-    # LOSS_TRAIN_FILE = DIR_PERF+'/train_losses.txt'
-    # LOSS_TEST_FILE = DIR_PERF+'/test_losses.txt'
-    # ACC_TEST_FILE = DIR_PERF+'/test_acc.txt'
-    # mode = 'CUDA'
-    # RESUME = False
-    # RESUME_STATE = DIR_PERF+'/model_best.pth'
+
     TRAIN_DIR = args.data
     OUT_DIR = args.outdir
     TRAIN_RATIO = args.ratio
@@ -49,7 +41,6 @@ def main(args):
     EPOCHS = args.epochs
     mode = args.cuda
     RESUME = args.resume
-
 
     RESNET = False
 
@@ -60,12 +51,39 @@ def main(args):
 
     train_ids, test_ids, n_train, n_test = split_dataset(TRAIN_DIR, TRAIN_RATIO)
 
+    # Transforms
+    crop = np_trsfrms.CenterCrop(65)
+    hflip = np_trsfrms.RandomHorizontalFlip()
+    vflip = np_trsfrms.RandomVerticalFlip()
+    trsfrms = transforms.Compose([
+        transforms.Lambda(lambda img: crop(img)),
+        transforms.Lambda(lambda img: hflip(img)),
+        transforms.Lambda(lambda img: vflip(img))
+    ])
+
     # Loading training dataset
     start = time.clock()
-    train_dataset = ImageDataset(train_ids, TRAIN_DIR, reader='tif_reader')
+    train_dataset = ImageDataset(train_ids, TRAIN_DIR, transform=trsfrms, reader='tif_reader')
+
+    # Visualization of transforms
+    # sample = train_dataset[0]
+    # sample['image'] = sample['image'].numpy()
+    # plt.figure()
+    # plt.subplot(1, 5, 1)
+    # plt.imshow(np.asarray(np.transpose(sample['image'][0:3]*255, (1, 2, 0)), dtype='uint8'))
+    #
+    # for i, tsfrm in enumerate([crop, hflip, vflip, trsfrms]):
+    #     t_sample = tsfrm(sample)
+    #     t_sample = t_sample['image']
+    #     ax = plt.subplot(1, 5, i + 2)
+    #     ax.set_title(type(tsfrm).__name__)
+    #     plt.imshow(np.asarray(np.transpose(t_sample[0:3]*255, (1, 2, 0)), dtype='uint8'))
+    # plt.show()
+
     train_loader = data.DataLoader(dataset=train_dataset, batch_size=16, shuffle=True)
     c_time = time.clock() - start
     print('Training set loaded: ' + str(n_train) + ' samples in %.2f sec' % c_time)
+
 
     # Loading evaluation dataset
     start = time.clock()
@@ -85,7 +103,7 @@ def main(args):
         net = resnet18
 
     if mode == 'CUDA':
-        net.cuda()
+        net.cuda(0)
 
     # Loss function and optimizer definition
     criterion = nn.CrossEntropyLoss()
@@ -127,9 +145,9 @@ def main(args):
     ACC_TEST_FILE = OUT_DIR + '/test_acc.txt'
 
     print('Initial best accuracy: {:.2f}'.format(best_acc))
-    with open(LOSS_TRAIN_FILE, 'w') as f_trainloss, \
-            open(LOSS_TEST_FILE, 'w') as f_testloss, \
-            open(ACC_TEST_FILE, 'w') as f_testacc:
+    with open(LOSS_TRAIN_FILE, 'a') as f_trainloss, \
+            open(LOSS_TEST_FILE, 'a') as f_testloss, \
+            open(ACC_TEST_FILE, 'a') as f_testacc:
 
         for e in range(start_epoch, EPOCHS):
             # Training

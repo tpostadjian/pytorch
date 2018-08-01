@@ -20,7 +20,6 @@ class Trainer():
         for it, batch in enumerate(tqdm(self.data_loader)):
             data = Variable(batch['image'])
             target = Variable(batch['class_code'])
-
             # forward
             if self.mode == 'cuda':
                 data = data.cuda()

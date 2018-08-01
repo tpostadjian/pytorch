@@ -2,7 +2,9 @@ import torch.optim as optim
 from torch.autograd import Variable
 from tqdm import tqdm
 import numpy as np
-
+import torch
+import torch.nn as nn
+import math
 
 class Trainer:
 
@@ -24,6 +26,16 @@ class Trainer:
     def runEpoch(self):
         loss_list = np.zeros(10000)
         for id_, (data, target) in enumerate(tqdm(self.dataset)):
+            CLASSES_WEIGHT = [0]
+            for i in range(5):
+                c = (target == i+1).nonzero()
+                w = c.size(0)
+                if w == 0:
+                    w = 1e-8
+                w = 1. / math.sqrt(w)
+                CLASSES_WEIGHT.append(w)
+            CLASSES_WEIGHT = np.asarray(CLASSES_WEIGHT)
+            CLASSES_WEIGHT = torch.from_numpy(CLASSES_WEIGHT).float().cuda()
             data = Variable(data)
             target = Variable(target)
             if self.mode == 'cuda':
@@ -31,7 +43,10 @@ class Trainer:
                 target = target.long().cuda()
             self.optimizer.zero_grad()
             output = self.model(data)
-            loss = self.criterion(output.float(), target)
+
+            crit = nn.CrossEntropyLoss(weight=CLASSES_WEIGHT, ignore_index=0)
+            # loss = self.criterion(output.float(), target)
+            loss = crit(output.float(), target)
             loss.backward()
             self.optimizer.step()
 

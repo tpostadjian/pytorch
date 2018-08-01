@@ -41,7 +41,7 @@ def raster_mask(path2shapefile, raster_ROI, field, attribute_filter, class_selec
     layer_def = layer.GetLayerDefn()
     fieldIndex = layer_def.GetFieldIndex(RASTERIZE_COLOR_FIELD)
 
-    if splitting == True:
+    if splitting:
         # Query to keep only class-belonging polygons
         for feature in layer:
             if feature.GetField(field) == attribute_filter:

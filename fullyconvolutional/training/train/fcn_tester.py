@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 
 def convert_to_color(arr_greyscale):
-    palette = {#0: (0, 0, 0),
+    palette = {0: (0, 0, 0),
                1: (255, 0, 0),      # Buildings (red)
                2: (0, 255, 0),      # Vegetation (green)
                3: (0, 0, 255),      # Water (Blue)
@@ -134,7 +134,7 @@ class Tester:
         return count
 
     def test(self, n_classes):
-        test_imgs = (gdal.Open(f).ReadAsArray() for f in self.data_files)
+        test_imgs = (1. / 255 * gdal.Open(f).ReadAsArray() for f in self.data_files)
         gt = (gdal.Open(f).ReadAsArray() for f in self.label_files)
 
         all_preds = []
@@ -142,14 +142,13 @@ class Tester:
         loss_list = np.zeros(1000000)
 
         for data, target in zip(test_imgs, gt):
-            # data = data.transpose(1, 2, 0)
             # pred = np.zeros((n_classes+1,) + data.shape[1:])
             pred = np.zeros((n_classes,) + data.shape[1:])
             it = 0
 
             for i, coords in enumerate(grouper(self.batchSize, self.sliding_window(data))):
 
-                patches = [np.copy(data[:,l:l+w, c:c+h]) for l, c, w, h in coords]
+                patches = [np.copy(data[:, l:l+w, c:c+h]) for l, c, w, h in coords]
                 patches = np.asarray(patches, dtype="float32")
                 patches = Variable(torch.from_numpy(patches).cuda())
 
@@ -157,28 +156,27 @@ class Tester:
                 output = output.data.cpu().numpy()
 
                 for out, (l, c, w, h) in zip(output, coords):
-                    # out = out.transpose(1, 2, 0)
                     out = out[1:]
                     pred[:, l:l+w, c:c+h] += out
                 del output
 
-            pred = np.argmax(pred, axis=0)
+            pred = np.argmax(pred, axis=0)+1
 
-            # # Display the result
-            # if it % 25 == 0:
-            #     fig = plt.figure()
-            #     fig.add_subplot(1, 3, 1)
-            #     plt.imshow(np.asarray(data[:3, :, :].transpose(1, 2, 0), dtype='uint8'))
-            #     fig.add_subplot(1, 3, 2)
-            #     plt.imshow(convert_to_color(pred))
-            #     fig.add_subplot(1, 3, 3)
-            #     plt.imshow(convert_to_color(target))
-            #     plt.show()
+            # Display the result
+            if it % 50 == 0:
+                fig = plt.figure()
+                fig.add_subplot(1, 3, 1)
+                plt.imshow(np.asarray(data[:3, :, :].transpose(1, 2, 0), dtype='uint8'))
+                fig.add_subplot(1, 3, 2)
+                plt.imshow(convert_to_color(pred))
+                fig.add_subplot(1, 3, 3)
+                plt.imshow(convert_to_color(target))
+                plt.show()
 
             all_preds.append(pred)
             all_gts.append(target)
 
-            cls = ['Unknown', 'Buildings', 'Vegetation', 'Water', 'Crop', 'Roads']
+            cls = ['Buildings', 'Vegetation', 'Water', 'Crop', 'Roads']
             metrics(pred.transpose(1,0).ravel(), target.ravel(), cls)
             accuracy = metrics(np.concatenate([p.ravel() for p in all_preds]),
                                np.concatenate([p.ravel() for p in all_gts]).ravel(), cls)

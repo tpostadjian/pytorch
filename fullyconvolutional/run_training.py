@@ -12,12 +12,10 @@ WINDOW_SIZE = (128, 128)
 STRIDE = 64
 TRAIN_RATIO = 0.9
 N_EPOCHS = 150
-CLASSES = ['Buildings', 'Vegetation', 'Water', 'Crop', 'Roads']
-# CLASSES = ['Unknown', 'Buildings', 'Vegetation', 'Water', 'Crop', 'Roads']
-# weights = [0, 1, 0.4, 0.7, 0.1, 0.8]
-# CLASSES_WEIGHT = torch.FloatTensor(weights).cuda()
-# CLASSES_WEIGHT = torch.ones(len(CLASSES)).cuda()
-CLASSES_WEIGHT = torch.ones(6).cuda()
+CLASSES = ['Unknown', 'Buildings', 'Vegetation', 'Water', 'Crop', 'Roads']
+weights = [0, 0.8, 0.4, 0.7, 0.1, 0.8]
+CLASSES_WEIGHT = torch.FloatTensor(weights).cuda()
+CLASSES_WEIGHT = torch.ones(len(CLASSES)).cuda()
 
 data_dir = '../../../Data/finistere/img_rescaled/tile_{}.tif'
 label_dir = '../../../Data/finistere/label/tile_{}.tif'
